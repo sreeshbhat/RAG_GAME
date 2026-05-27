@@ -11,6 +11,8 @@ export function LoginForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [rollNumber, setRollNumber] = useState("");
+  const [llmProvider, setLlmProvider] = useState("groq");
+  const [llmApiKey, setLlmApiKey] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -22,7 +24,7 @@ export function LoginForm() {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, rollNumber }),
+      body: JSON.stringify({ name, rollNumber, llmProvider, llmApiKey }),
     });
 
     const payload = await response.json();
@@ -41,7 +43,7 @@ export function LoginForm() {
     <Card className="mx-auto w-full max-w-md">
       <CardTitle>Student Login</CardTitle>
       <CardDescription className="mt-2">
-        Enter the exact registered name and roll number from the class roster.
+        Enter your registered name, roll number, model provider, and your own API key.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
@@ -54,6 +56,26 @@ export function LoginForm() {
             value={rollNumber}
             onChange={(e) => setRollNumber(e.target.value)}
             placeholder="23EG106A05"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm text-muted">Model provider</label>
+          <select
+            className="h-11 w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 text-sm text-foreground"
+            value={llmProvider}
+            onChange={(event) => setLlmProvider(event.target.value)}
+          >
+            <option value="groq">Groq</option>
+            <option value="openrouter">OpenRouter</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm text-muted">API key</label>
+          <Input
+            value={llmApiKey}
+            onChange={(e) => setLlmApiKey(e.target.value)}
+            placeholder="Paste your provider API key"
+            type="password"
           />
         </div>
         {error ? <p className="text-sm text-danger">{error}</p> : null}

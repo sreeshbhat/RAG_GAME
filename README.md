@@ -61,11 +61,15 @@ Copy `.env.example` to `.env` and set:
 DATABASE_URL=
 GROQ_API_KEY=
 GROQ_MODEL=llama-3.3-70b-versatile
+OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct
 ADMIN_PASSWORD=
 EMBEDDING_PROVIDER=fallback
 SESSION_SECRET=
 NEXT_PUBLIC_APP_NAME=RAG Detective Game
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+Students now supply their own provider and API key at login. The app stores that information in an encrypted HTTP-only session and only uses it from server-side route handlers.
 
 ## Run migrations
 

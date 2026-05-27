@@ -1,8 +1,11 @@
+import type { SupportedLlmProvider } from "@/lib/auth";
 import { z } from "zod";
 
 export const loginSchema = z.object({
   name: z.string().min(2).max(120),
   rollNumber: z.string().min(3).max(64),
+  llmProvider: z.custom<SupportedLlmProvider>((value) => value === "groq" || value === "openrouter"),
+  llmApiKey: z.string().min(10).max(300),
 });
 
 export const adminLoginSchema = z.object({

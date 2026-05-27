@@ -1,4 +1,4 @@
-import { getGroqClient } from "@/lib/groq";
+import type { SupportedLlmProvider } from "@/lib/auth";
 
 import type { RetrievalResult } from "@/lib/retrieval";
 
@@ -49,18 +49,64 @@ What to investigate next:
 Sources Used:`;
 }
 
-export async function generateGroundedAnswer(input: Parameters<typeof buildRagPrompt>[0]) {
-  const groq = getGroqClient();
-  const response = await groq.chat.completions.create({
-    model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
-    temperature: 0.2,
-    messages: [
-      {
-        role: "system",
-        content: buildRagPrompt(input),
-      },
-    ],
+export async function generateGroundedAnswer(
+  input: Parameters<typeof buildRagPrompt>[0] & {
+    provider: SupportedLlmProvider;
+    apiKey: string;
+  },
+) {
+  const config: {
+    url: string;
+    model: string;
+    extraHeaders: Record<string, string>;
+  } =
+    input.provider === "openrouter"
+      ? {
+          url: "https://openrouter.ai/api/v1/chat/completions",
+          model: process.env.OPENROUTER_MODEL ?? "meta-llama/llama-3.3-70b-instruct",
+          extraHeaders: {
+            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+            "X-Title": process.env.NEXT_PUBLIC_APP_NAME ?? "RAG Detective Game",
+          },
+        }
+      : {
+          url: "https://api.groq.com/openai/v1/chat/completions",
+          model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+          extraHeaders: {},
+        };
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${input.apiKey}`,
+    ...config.extraHeaders,
+  };
+
+  const response = await fetch(config.url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model: config.model,
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content: buildRagPrompt(input),
+        },
+      ],
+    }),
   });
 
-  return response.choices[0]?.message?.content?.trim() ?? "I could not find this in the evidence documents.";
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Provider request failed: ${response.status} ${errorText}`);
+  }
+
+  const payload = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+
+  return (
+    payload.choices?.[0]?.message?.content?.trim() ??
+    "I could not find this in the evidence documents."
+  );
 }

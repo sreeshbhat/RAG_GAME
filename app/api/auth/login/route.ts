@@ -25,6 +25,8 @@ export async function POST(request: Request) {
       name: registered.name,
       email: registered.email,
       rollNumber: registered.rollNumber,
+      llmProvider: body.llmProvider,
+      llmApiKey: body.llmApiKey,
     });
 
     return NextResponse.json({ ok: true });

@@ -29,6 +29,8 @@ export async function POST(request: Request) {
       studentDbId: dbStudent.id,
       caseSlug: body.caseId,
       question: body.question,
+      llmProvider: session.llmProvider,
+      llmApiKey: session.llmApiKey,
     });
 
     return NextResponse.json(result);

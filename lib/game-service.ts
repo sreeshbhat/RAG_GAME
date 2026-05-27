@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { getCaseFileBySlug, getAllCaseFiles } from "@/lib/case-loader";
+import type { SupportedLlmProvider } from "@/lib/auth";
 import { chunkText } from "@/lib/chunking";
 import { detectDiscoveredClues } from "@/lib/clue-detection";
 import { validateCitations } from "@/lib/citations";
@@ -358,10 +359,14 @@ export async function processChatQuestion({
   studentDbId,
   caseSlug,
   question,
+  llmProvider,
+  llmApiKey,
 }: {
   studentDbId: string;
   caseSlug: string;
   question: string;
+  llmProvider: SupportedLlmProvider;
+  llmApiKey: string;
 }) {
   const db = getDb();
   const { caseRecord, progress } = await ensureProgress(studentDbId, caseSlug);
@@ -435,6 +440,8 @@ export async function processChatQuestion({
     criticalCluesFound: clueKeys,
     questionsRemaining: MAX_QUESTIONS - (progress.questionsUsed + 1),
     retrieved,
+    provider: llmProvider,
+    apiKey: llmApiKey,
   });
 
   const discoveredClues = detectDiscoveredClues(retrieved, clueKeys);
