@@ -56,6 +56,7 @@ export type CaseFile = {
     level2: string;
     level3: string;
   };
+  legacySlugs?: string[];
   minimumCriticalCluesRequired?: number;
   maxQuestionsAllowed?: number;
   accusationRequiresEvidence?: boolean;

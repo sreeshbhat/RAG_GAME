@@ -1,6 +1,7 @@
 {
-  "slug": "level-7-the-scholarship-data-leak",
-  "title": "Level 7: The Scholarship Data Leak",
+  "slug": "level-5-the-scholarship-data-leak",
+  "title": "Level 5: The Scholarship Data Leak",
+  "legacySlugs": ["level-7-the-scholarship-data-leak"],
   "difficulty": "expert",
   "estimatedTime": "45-60 minutes",
   "briefing": "At Saraswati Institute of Technology, the confidential file scholarship_final_review.xlsx was leaked the night before the official scholarship announcement. Students and parents began receiving outside messages before the list was published. Investigators must determine who used the unlocked committee laptop, how the file was copied, and how it reached a coaching center before the public release.",

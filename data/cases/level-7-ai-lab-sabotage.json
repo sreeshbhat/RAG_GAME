@@ -1,6 +1,7 @@
 {
-  "slug": "level-5-ai-lab-sabotage",
-  "title": "Level 5: AI Lab Sabotage",
+  "slug": "level-7-ai-lab-sabotage",
+  "title": "Level 7: AI Lab Sabotage",
+  "legacySlugs": ["level-5-ai-lab-sabotage"],
   "difficulty": "hard",
   "estimatedTime": "35 minutes",
   "briefing": "An AI training run failed after the dataset was silently modified. The sabotage caused the model accuracy to collapse before a major demo.",

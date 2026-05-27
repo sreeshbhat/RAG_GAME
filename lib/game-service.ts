@@ -127,7 +127,12 @@ export async function seedCasesFromFiles() {
   let imported = 0;
 
   for (const caseFile of caseFiles) {
-    const existingCase = await db.select().from(cases).where(eq(cases.slug, caseFile.slug)).limit(1);
+    const possibleSlugs = Array.from(new Set([caseFile.slug, ...(caseFile.legacySlugs ?? [])]));
+    const existingCase = await db
+      .select()
+      .from(cases)
+      .where(inArray(cases.slug, possibleSlugs))
+      .limit(1);
     let caseRecord = existingCase[0];
 
     if (!caseRecord) {
@@ -150,6 +155,13 @@ export async function seedCasesFromFiles() {
       [caseRecord] = await db
         .update(cases)
         .set({
+          slug: caseFile.slug,
+          title: caseFile.title,
+          briefing: caseFile.briefing,
+          difficulty: caseFile.difficulty,
+          estimatedTime: caseFile.estimatedTime,
+          correctCulprit: caseFile.correctCulprit,
+          solutionExplanation: caseFile.solutionExplanation,
           completionScoreThreshold: caseFile.completionScoreThreshold ?? 40,
           completionCluesThreshold: caseFile.completionCluesThreshold ?? getCaseClueRequirement(caseFile),
         })
