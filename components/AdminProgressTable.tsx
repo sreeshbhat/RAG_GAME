@@ -27,8 +27,10 @@ export function AdminProgressTable({
             {rows.map((row, index) => (
               <tr className="border-t border-white/5" key={`${title}-${index}`}>
                 {headers.map((header) => (
-                  <td className="py-3" key={header}>
-                    {String(row[header] ?? "")}
+                  <td className="max-w-[260px] py-3 align-top" key={header}>
+                    <div className="line-clamp-4 whitespace-pre-wrap break-words text-sm">
+                      {String(row[header] ?? "")}
+                    </div>
                   </td>
                 ))}
               </tr>

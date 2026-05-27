@@ -25,12 +25,12 @@ import {
   hallucinationReports,
   studentCaseProgress,
   studentClues,
+  studentSuspectInterrogationState,
+  studentTimelineProgress,
   students,
   suspects,
   suspectProfiles,
-  studentSuspectInterrogationState,
   timelineEvents,
-  studentTimelineProgress,
 } from "@/lib/schema";
 import type { RegisteredStudent } from "@/lib/student-registry";
 
@@ -898,10 +898,23 @@ export async function getAdminProgress() {
   };
 }
 
-export async function resetProgress(input: { type: "student" | "case"; studentId?: string; caseId?: string }) {
+export async function resetProgress(input: { type: "student" | "case" | "all"; studentId?: string; caseId?: string }) {
   const db = getDb();
 
+  if (input.type === "all") {
+    await db.delete(studentTimelineProgress);
+    await db.delete(studentSuspectInterrogationState);
+    await db.delete(studentClues);
+    await db.delete(hallucinationReports);
+    await db.delete(chatMessages);
+    await db.delete(finalAccusations);
+    await db.delete(studentCaseProgress);
+    return { ok: true };
+  }
+
   if (input.type === "student" && input.studentId) {
+    await db.delete(studentTimelineProgress).where(eq(studentTimelineProgress.studentId, input.studentId));
+    await db.delete(studentSuspectInterrogationState).where(eq(studentSuspectInterrogationState.studentId, input.studentId));
     await db.delete(studentClues).where(eq(studentClues.studentId, input.studentId));
     await db.delete(hallucinationReports).where(eq(hallucinationReports.studentId, input.studentId));
     await db.delete(chatMessages).where(eq(chatMessages.studentId, input.studentId));
@@ -911,6 +924,8 @@ export async function resetProgress(input: { type: "student" | "case"; studentId
   }
 
   if (input.type === "case" && input.caseId) {
+    await db.delete(studentTimelineProgress).where(eq(studentTimelineProgress.caseId, input.caseId));
+    await db.delete(studentSuspectInterrogationState).where(eq(studentSuspectInterrogationState.caseId, input.caseId));
     await db.delete(studentClues).where(eq(studentClues.caseId, input.caseId));
     await db.delete(hallucinationReports).where(eq(hallucinationReports.caseId, input.caseId));
     await db.delete(chatMessages).where(eq(chatMessages.caseId, input.caseId));

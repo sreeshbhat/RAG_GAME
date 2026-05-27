@@ -31,7 +31,6 @@ export default async function AdminPage() {
           activeCases={cases.map((item) => ({ title: item.title, slug: item.slug }))}
           scoreboard={progress.scoreboard}
           hallucinationReports={progress.hallucinationReports}
-          chatLogs={progress.chatLogs}
         />
       </main>
     </>

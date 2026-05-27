@@ -30,7 +30,7 @@ export const accusationSchema = z.object({
 });
 
 export const resetSchema = z.object({
-  type: z.enum(["student", "case"]),
+  type: z.enum(["student", "case", "all"]),
   studentId: z.string().optional(),
   caseId: z.string().optional(),
 });

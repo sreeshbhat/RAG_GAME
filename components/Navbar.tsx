@@ -46,6 +46,18 @@ export function Navbar({ studentName, rollNumber, isAdmin }: NavbarProps) {
               </Link>
             </nav>
           )}
+          {isAdmin && (
+            <nav className="hidden md:flex items-center gap-4 text-sm text-slate-300">
+              <Link href="/admin" className="flex items-center gap-1.5 hover:text-white transition-colors">
+                <FileText className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+              <Link href="/admin/chat-logs" className="flex items-center gap-1.5 hover:text-white transition-colors">
+                <Award className="h-4 w-4" />
+                <span>Chat Logs</span>
+              </Link>
+            </nav>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
