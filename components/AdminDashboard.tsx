@@ -34,6 +34,11 @@ type HallucinationRow = {
   createdAt: string | Date;
 };
 
+function getLevelLabel(caseTitle: string) {
+  const match = caseTitle.match(/^Level\s+(\d+)/i);
+  return match ? `Level ${match[1]}` : "Other";
+}
+
 export function AdminDashboard({
   students,
   activeCases,
@@ -46,6 +51,7 @@ export function AdminDashboard({
   hallucinationReports: HallucinationRow[];
 }) {
   const [studentFilter, setStudentFilter] = useState("");
+  const [levelFilter, setLevelFilter] = useState("all");
   const [caseFilter, setCaseFilter] = useState("all");
   const [resultFilter, setResultFilter] = useState("all");
   const [reportStudentFilter, setReportStudentFilter] = useState("");
@@ -54,17 +60,31 @@ export function AdminDashboard({
   const [resetPending, setResetPending] = useState(false);
 
   const filteredScoreboard = useMemo(() => {
-    return scoreboard.filter((row) => {
+    const filtered = scoreboard.filter((row) => {
       const query = studentFilter.toLowerCase();
       const matchesStudent =
         !query ||
         row.studentName.toLowerCase().includes(query) ||
         row.rollNumber.toLowerCase().includes(query);
+      const matchesLevel =
+        levelFilter === "all" || getLevelLabel(row.caseTitle) === levelFilter;
       const matchesCase = caseFilter === "all" || row.caseTitle === caseFilter;
       const matchesResult = resultFilter === "all" || row.finalResult === resultFilter;
-      return matchesStudent && matchesCase && matchesResult;
+      return matchesStudent && matchesLevel && matchesCase && matchesResult;
     });
-  }, [scoreboard, studentFilter, caseFilter, resultFilter]);
+
+    return [...filtered]
+      .sort((left, right) => {
+        if (right.score !== left.score) return right.score - left.score;
+        const leftTime = left.solvedTime ? new Date(left.solvedTime).getTime() : Number.MAX_SAFE_INTEGER;
+        const rightTime = right.solvedTime ? new Date(right.solvedTime).getTime() : Number.MAX_SAFE_INTEGER;
+        return leftTime - rightTime;
+      })
+      .map((row, index) => ({
+        ...row,
+        rank: index + 1,
+      }));
+  }, [scoreboard, studentFilter, levelFilter, caseFilter, resultFilter]);
 
   const filteredReports = useMemo(() => {
     return hallucinationReports.filter((row) => {
@@ -99,7 +119,11 @@ export function AdminDashboard({
   }
 
   const scoreboardCases = Array.from(new Set(scoreboard.map((row) => row.caseTitle)));
+  const scoreboardLevels = Array.from(
+    new Set(scoreboard.map((row) => getLevelLabel(row.caseTitle))),
+  ).sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
   const reportCases = Array.from(new Set(hallucinationReports.map((row) => row.caseTitle)));
+  const topPlayer = filteredScoreboard[0] ?? null;
 
   return (
     <div className="space-y-8">
@@ -141,12 +165,24 @@ export function AdminDashboard({
 
       <Card>
         <CardTitle>Scoreboard Filters</CardTitle>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
           <Input
             placeholder="Filter by student or roll number"
             value={studentFilter}
             onChange={(event) => setStudentFilter(event.target.value)}
           />
+          <select
+            className="h-11 rounded-2xl border border-white/10 bg-slate-950/40 px-4 text-sm text-foreground"
+            value={levelFilter}
+            onChange={(event) => setLevelFilter(event.target.value)}
+          >
+            <option value="all">All levels</option>
+            {scoreboardLevels.map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
           <select
             className="h-11 rounded-2xl border border-white/10 bg-slate-950/40 px-4 text-sm text-foreground"
             value={caseFilter}
@@ -170,6 +206,21 @@ export function AdminDashboard({
             <option value="in_progress">In Progress</option>
             <option value="not_started">Not Started</option>
           </select>
+        </div>
+      </Card>
+
+      <Card>
+        <CardTitle>
+          {levelFilter === "all" ? "Current Top Player" : `${levelFilter} Top Player`}
+        </CardTitle>
+        <div className="mt-4 text-sm text-muted">
+          {topPlayer ? (
+            <p>
+              {topPlayer.studentName} | {topPlayer.rollNumber} | {topPlayer.caseTitle} | Score {topPlayer.score}
+            </p>
+          ) : (
+            <p>No leaderboard rows match the current filters.</p>
+          )}
         </div>
       </Card>
 
