@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 
-import { getCaseFileBySlug } from "@/lib/case-loader";
+import { getCaseFileBySlug, type CaseFile } from "@/lib/case-loader";
 import type { SupportedLlmProvider } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { retrieveEvidence } from "@/lib/retrieval";
@@ -14,6 +14,71 @@ import {
   studentSuspectInterrogationState,
   suspectProfiles,
 } from "@/lib/schema";
+
+type ResolvedSuspectProfile = {
+  suspectName: string;
+  personality: string;
+  truthfulness: number;
+  background: string;
+  hiddenFacts: string[];
+  emotionalTriggers: string[];
+};
+
+function sentenceSplit(text: string) {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+function buildFallbackSuspectProfile(caseFile: CaseFile, suspectName: string): ResolvedSuspectProfile | null {
+  const suspect = caseFile.suspects.find((entry) => entry.name === suspectName);
+  if (!suspect) {
+    return null;
+  }
+
+  const suspectEvidence = caseFile.evidence.filter((entry) =>
+    entry.content.toLowerCase().includes(suspectName.toLowerCase()),
+  );
+  const criticalEvidence = suspectEvidence.filter((entry) => entry.isCritical);
+  const hiddenFacts = criticalEvidence
+    .flatMap((entry) => sentenceSplit(entry.content))
+    .slice(0, 3);
+  const triggerTerms = new Set<string>();
+
+  for (const token of suspect.name.toLowerCase().split(/\s+/)) {
+    if (token.length >= 3) triggerTerms.add(token);
+  }
+  for (const token of suspect.role.toLowerCase().split(/\s+/)) {
+    if (token.length >= 4) triggerTerms.add(token);
+  }
+  for (const evidence of criticalEvidence) {
+    if (evidence.clueKey) {
+      evidence.clueKey
+        .toLowerCase()
+        .split(/[_\s-]+/)
+        .filter((token) => token.length >= 4)
+        .forEach((token) => triggerTerms.add(token));
+    }
+  }
+
+  const isLikelyCulprit = caseFile.correctCulprit === suspectName;
+
+  return {
+    suspectName,
+    personality: isLikelyCulprit
+      ? "Guarded, evasive, and increasingly defensive when confronted with concrete evidence."
+      : "Cooperative but cautious, focused on clearing their name with facts.",
+    truthfulness: isLikelyCulprit ? 35 : 80,
+    background: `${suspect.role}. ${suspect.description}`,
+    hiddenFacts:
+      hiddenFacts.length > 0
+        ? hiddenFacts
+        : [isLikelyCulprit ? "I know more about the incident than I first admitted." : "I am trying to avoid sounding suspicious even though I am not the culprit."],
+    emotionalTriggers:
+      triggerTerms.size > 0 ? Array.from(triggerTerms).slice(0, 8) : ["evidence", "timeline", "access"],
+  };
+}
 
 export async function processInterrogationQuestion({
   studentDbId,
@@ -31,17 +96,20 @@ export async function processInterrogationQuestion({
   llmApiKey: string;
 }) {
   const db = getDb();
+  const caseFile = await getCaseFileBySlug(caseSlug);
+  if (!caseFile) throw new Error("Case file not found.");
 
   // 1. Fetch case record
   const [caseRecord] = await db.select().from(cases).where(eq(cases.slug, caseSlug)).limit(1);
   if (!caseRecord) throw new Error("Case not found.");
 
   // 2. Fetch suspect profile
-  const [profile] = await db
+  const [storedProfile] = await db
     .select()
     .from(suspectProfiles)
     .where(and(eq(suspectProfiles.caseId, caseRecord.id), eq(suspectProfiles.suspectName, suspectName)))
     .limit(1);
+  const profile = storedProfile ?? buildFallbackSuspectProfile(caseFile, suspectName);
   if (!profile) throw new Error("Suspect profile not found.");
 
   // 3. Load or create student's interrogation state for this suspect
@@ -291,7 +359,6 @@ Rules:
 
   // 11. Check if we should unlock clues
   const cluesDiscovered: string[] = [];
-  const caseFile = await getCaseFileBySlug(caseSlug);
   if (revealedFact && caseFile) {
     const matchingEvidence = caseFile.evidence.find(
       (ev) =>
