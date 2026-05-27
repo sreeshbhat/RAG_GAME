@@ -10,6 +10,7 @@ import { generateEmbedding } from "@/lib/embeddings";
 import { detectPromptInjection } from "@/lib/hallucination";
 import { generateGroundedAnswer } from "@/lib/rag";
 import { retrieveEvidence } from "@/lib/retrieval";
+import { evaluateAutoHint } from "@/lib/hint-engine";
 import {
   applyScore,
   evaluateQuestionQuality,
@@ -26,6 +27,10 @@ import {
   studentClues,
   students,
   suspects,
+  suspectProfiles,
+  studentSuspectInterrogationState,
+  timelineEvents,
+  studentTimelineProgress,
 } from "@/lib/schema";
 import type { RegisteredStudent } from "@/lib/student-registry";
 
@@ -101,8 +106,41 @@ export async function seedCasesFromFiles() {
           status: "active",
           correctCulprit: caseFile.correctCulprit,
           solutionExplanation: caseFile.solutionExplanation,
+          completionScoreThreshold: caseFile.completionScoreThreshold ?? 40,
+          completionCluesThreshold: caseFile.completionCluesThreshold ?? getUnlockClueRequirement(caseFile.difficulty),
         })
         .returning();
+    } else {
+      [caseRecord] = await db
+        .update(cases)
+        .set({
+          completionScoreThreshold: caseFile.completionScoreThreshold ?? 40,
+          completionCluesThreshold: caseFile.completionCluesThreshold ?? getUnlockClueRequirement(caseFile.difficulty),
+        })
+        .where(eq(cases.id, caseRecord.id))
+        .returning();
+    }
+
+    // Seed suspect profiles
+    if (caseFile.suspectProfiles) {
+      const existingProfiles = await db
+        .select()
+        .from(suspectProfiles)
+        .where(eq(suspectProfiles.caseId, caseRecord.id));
+
+      if (existingProfiles.length === 0) {
+        for (const profile of caseFile.suspectProfiles) {
+          await db.insert(suspectProfiles).values({
+            caseId: caseRecord.id,
+            suspectName: profile.suspectName,
+            personality: profile.personality,
+            truthfulness: profile.truthfulness,
+            background: profile.background,
+            hiddenFacts: profile.hiddenFacts,
+            emotionalTriggers: profile.emotionalTriggers,
+          });
+        }
+      }
     }
 
     const existingDocs = await db
@@ -110,7 +148,32 @@ export async function seedCasesFromFiles() {
       .from(evidenceDocuments)
       .where(eq(evidenceDocuments.caseId, caseRecord.id));
 
-    if (existingDocs.length > 0) continue;
+    if (existingDocs.length > 0) {
+      // Seed timeline events if they do not exist
+      if (caseFile.timelineEvents) {
+        const existingTimeline = await db
+          .select()
+          .from(timelineEvents)
+          .where(eq(timelineEvents.caseId, caseRecord.id));
+
+        if (existingTimeline.length === 0) {
+          for (const event of caseFile.timelineEvents) {
+            const matchingDoc = existingDocs.find((doc) => doc.title === event.evidenceTitle);
+            if (matchingDoc) {
+              await db.insert(timelineEvents).values({
+                caseId: caseRecord.id,
+                timestamp: event.timestamp,
+                description: event.description,
+                evidenceId: matchingDoc.id,
+                critical: event.critical,
+                orderIndex: event.orderIndex,
+              });
+            }
+          }
+        }
+      }
+      continue;
+    }
 
     for (const suspectEntry of caseFile.suspects) {
       await db.insert(suspects).values({
@@ -174,6 +237,28 @@ export async function seedCasesFromFiles() {
           embedding: null,
           metadata,
         });
+      }
+    }
+
+    // Seed timeline events for freshly created cases
+    if (caseFile.timelineEvents) {
+      const dbDocs = await db
+        .select()
+        .from(evidenceDocuments)
+        .where(eq(evidenceDocuments.caseId, caseRecord.id));
+
+      for (const event of caseFile.timelineEvents) {
+        const matchingDoc = dbDocs.find((doc) => doc.title === event.evidenceTitle);
+        if (matchingDoc) {
+          await db.insert(timelineEvents).values({
+            caseId: caseRecord.id,
+            timestamp: event.timestamp,
+            description: event.description,
+            evidenceId: matchingDoc.id,
+            critical: event.critical,
+            orderIndex: event.orderIndex,
+          });
+        }
       }
     }
 
@@ -264,6 +349,8 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
       hallucinationReports: [],
       chatLog: [],
       accusationLocked: true,
+      hasSubmittedAccusation: false,
+      accusationFeedback: null,
     };
   }
 
@@ -278,6 +365,8 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
       hallucinationReports: [],
       chatLog: [],
       accusationLocked: true,
+      hasSubmittedAccusation: false,
+      accusationFeedback: null,
     };
   }
 
@@ -304,6 +393,12 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     .where(and(eq(chatMessages.studentId, studentDbId), eq(chatMessages.caseId, caseRecord.id)))
     .orderBy(chatMessages.createdAt);
 
+  const [existingAccusation] = await db
+    .select()
+    .from(finalAccusations)
+    .where(and(eq(finalAccusations.studentId, studentDbId), eq(finalAccusations.caseId, caseRecord.id)))
+    .limit(1);
+
   return {
     ...base,
     dbCaseId: caseRecord.id,
@@ -312,7 +407,10 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     cluesFound: clueRows.map((row) => row.clueKey),
     hallucinationReports: reports,
     chatLog: messages,
-    accusationLocked: clueRows.length < getUnlockClueRequirement(caseFile.difficulty),
+    hintsUsed: progress?.hintsUsed ?? 0,
+    accusationLocked: !!existingAccusation || clueRows.length < getUnlockClueRequirement(caseFile.difficulty),
+    hasSubmittedAccusation: !!existingAccusation,
+    accusationFeedback: existingAccusation?.feedback ?? null,
   };
 }
 
@@ -516,9 +614,24 @@ export async function processChatQuestion({
     })
     .where(eq(studentCaseProgress.id, progress.id));
 
+  const caseFile = await getCaseFileBySlug(caseSlug);
+  const duplicateCount = recentQuestionRows.filter((r) => r.scoreDelta < 0).length;
+  const timeSpent = Math.floor(
+    (Date.now() - (progress.startedAt ? new Date(progress.startedAt).getTime() : Date.now())) / 1000,
+  );
+
+  const autoHint = evaluateAutoHint({
+    questionsAsked: progress.questionsUsed + 1,
+    criticalCluesFound: clueKeys.length + discoveredClues.length,
+    duplicateQuestions: duplicateCount,
+    timeSpent,
+    timelineCompletion: false,
+    caseFile,
+  });
+
   return {
     blocked: false,
-    answer,
+    answer: autoHint ? `${answer}\n\n${autoHint.hint}` : answer,
     citations: assistantMessage[0]?.citations ?? [],
     retrievedChunks: retrieved,
     scoreDelta,
@@ -599,94 +712,111 @@ export async function submitAccusation({
   selectedEvidence: string[];
 }) {
   const db = getDb();
-  const [caseRecord] = await db.select().from(cases).where(eq(cases.slug, caseSlug)).limit(1);
-  if (!caseRecord) throw new Error("Case not found.");
+  return await db.transaction(async (tx) => {
+    const [caseRecord] = await tx.select().from(cases).where(eq(cases.slug, caseSlug)).limit(1);
+    if (!caseRecord) throw new Error("Case not found.");
 
-  const existing = await db
-    .select()
-    .from(finalAccusations)
-    .where(and(eq(finalAccusations.studentId, studentDbId), eq(finalAccusations.caseId, caseRecord.id)))
-    .limit(1);
-  if (existing[0]) {
-    throw new Error("Final accusation already submitted for this case.");
-  }
+    const existing = await tx
+      .select()
+      .from(finalAccusations)
+      .where(and(eq(finalAccusations.studentId, studentDbId), eq(finalAccusations.caseId, caseRecord.id)))
+      .limit(1);
+    if (existing[0]) {
+      throw new Error("Final accusation already submitted for this case.");
+    }
 
-  const clueRows = await db
-    .select()
-    .from(studentClues)
-    .where(and(eq(studentClues.studentId, studentDbId), eq(studentClues.caseId, caseRecord.id)));
-  const requiredClues = getUnlockClueRequirement(caseRecord.difficulty);
-  if (clueRows.length < requiredClues) {
-    throw new Error(`At least ${requiredClues} critical clues are required before a final accusation.`);
-  }
+    const clueRows = await tx
+      .select()
+      .from(studentClues)
+      .where(and(eq(studentClues.studentId, studentDbId), eq(studentClues.caseId, caseRecord.id)));
+    const requiredClues = getUnlockClueRequirement(caseRecord.difficulty);
+    if (clueRows.length < requiredClues) {
+      throw new Error(`At least ${requiredClues} critical clues are required before a final accusation.`);
+    }
 
-  const caseFile = await getCaseFileBySlug(caseSlug);
-  const evidenceMatches = (caseFile?.evidence ?? []).filter((entry) =>
-    selectedEvidence.includes(entry.title),
-  );
-  const correctEvidenceCount = evidenceMatches.filter(
-    (entry) => entry.isCritical && entry.clueKey,
-  ).length;
-  const isCorrect = accusedSuspect === caseRecord.correctCulprit;
-  const strongExplanation =
-    explanation.length > 120 &&
-    selectedEvidence.some((title) => explanation.toLowerCase().includes(title.toLowerCase().split(" ")[0]));
+    const caseFile = await getCaseFileBySlug(caseSlug);
+    const evidenceMatches = (caseFile?.evidence ?? []).filter((entry) =>
+      selectedEvidence.includes(entry.title),
+    );
+    const correctEvidenceCount = evidenceMatches.filter(
+      (entry) => entry.isCritical && entry.clueKey,
+    ).length;
+    const isCorrect = accusedSuspect === caseRecord.correctCulprit;
+    const strongExplanation =
+      explanation.length > 120 &&
+      selectedEvidence.some((title) => explanation.toLowerCase().includes(title.toLowerCase().split(" ")[0]));
 
-  const scoreEvents: ScoreEvent[] = [];
-  if (isCorrect) scoreEvents.push("correct_culprit" as const);
-  else scoreEvents.push("wrong_culprit" as const);
+    const scoreEvents: ScoreEvent[] = [];
+    if (isCorrect) scoreEvents.push("correct_culprit" as const);
+    else scoreEvents.push("wrong_culprit" as const);
 
-  if (correctEvidenceCount >= 2) scoreEvents.push("correct_supporting_evidence" as const);
-  if (strongExplanation) scoreEvents.push("strong_explanation" as const);
-  else scoreEvents.push("weak_explanation" as const);
-  if (!/maybe|probably|guess|perhaps/i.test(explanation)) {
-    scoreEvents.push("no_unsupported_claim" as const);
-  }
+    if (correctEvidenceCount >= 2) scoreEvents.push("correct_supporting_evidence" as const);
+    if (strongExplanation) scoreEvents.push("strong_explanation" as const);
+    else scoreEvents.push("weak_explanation" as const);
+    if (!/maybe|probably|guess|perhaps/i.test(explanation)) {
+      scoreEvents.push("no_unsupported_claim" as const);
+    }
 
-  const [progress] = await db
-    .select()
-    .from(studentCaseProgress)
-    .where(and(eq(studentCaseProgress.studentId, studentDbId), eq(studentCaseProgress.caseId, caseRecord.id)))
-    .limit(1);
+    const [progress] = await tx
+      .select()
+      .from(studentCaseProgress)
+      .where(and(eq(studentCaseProgress.studentId, studentDbId), eq(studentCaseProgress.caseId, caseRecord.id)))
+      .limit(1);
 
-  if (progress?.questionsUsed && progress.questionsUsed < 10) {
-    scoreEvents.push("under_10_questions_bonus" as const);
-  }
-  if (caseFile && clueRows.length === caseFile.criticalClues.length) {
-    scoreEvents.push("all_clues_bonus" as const);
-  }
+    if (progress?.questionsUsed && progress.questionsUsed < 10) {
+      scoreEvents.push("under_10_questions_bonus" as const);
+    }
+    if (caseFile && clueRows.length === caseFile.criticalClues.length) {
+      scoreEvents.push("all_clues_bonus" as const);
+    }
 
-  const totalAwarded = applyScore(...scoreEvents);
-  const feedback = isCorrect
-    ? `Correct. ${caseRecord.solutionExplanation}`
-    : `Incorrect. ${caseRecord.solutionExplanation}`;
+    const [timelineProg] = await tx
+      .select()
+      .from(studentTimelineProgress)
+      .where(and(eq(studentTimelineProgress.studentId, studentDbId), eq(studentTimelineProgress.caseId, caseRecord.id)))
+      .limit(1);
 
-  const [accusation] = await db
-    .insert(finalAccusations)
-    .values({
-      studentId: studentDbId,
-      caseId: caseRecord.id,
-      accusedSuspect,
-      explanation,
-      selectedEvidence,
-      scoreAwarded: totalAwarded,
-      isCorrect,
-      feedback,
-    })
-    .returning();
+    const timelineScore = timelineProg?.submitted ? timelineProg.score : 0;
+    const totalAwarded = applyScore(...scoreEvents) + timelineScore;
 
-  if (progress) {
-    await db
-      .update(studentCaseProgress)
-      .set({
-        status: isCorrect ? "solved" : "failed",
-        score: progress.score + totalAwarded,
-        completedAt: new Date(),
+    const feedback = isCorrect
+      ? `Correct. ${caseRecord.solutionExplanation}`
+      : `Incorrect. ${caseRecord.solutionExplanation}`;
+
+    const [accusation] = await tx
+      .insert(finalAccusations)
+      .values({
+        studentId: studentDbId,
+        caseId: caseRecord.id,
+        accusedSuspect,
+        explanation,
+        selectedEvidence,
+        scoreAwarded: totalAwarded,
+        isCorrect,
+        feedback,
       })
-      .where(eq(studentCaseProgress.id, progress.id));
-  }
+      .returning();
 
-  return accusation;
+    if (progress) {
+      const finalScore = progress.score + totalAwarded;
+      const finalClues = progress.criticalCluesFound;
+      const isCompleted =
+        finalScore >= caseRecord.completionScoreThreshold &&
+        finalClues >= caseRecord.completionCluesThreshold;
+
+      await tx
+        .update(studentCaseProgress)
+        .set({
+          status: isCompleted ? "solved" : "failed",
+          score: finalScore,
+          timelineAccuracy: timelineProg?.submitted ? timelineProg.score : 0,
+          completedAt: new Date(),
+        })
+        .where(eq(studentCaseProgress.id, progress.id));
+    }
+
+    return accusation;
+  });
 }
 
 export async function getScoreboard() {
@@ -703,6 +833,10 @@ export async function getScoreboard() {
       score: studentCaseProgress.score,
       questionsAsked: studentCaseProgress.questionsUsed,
       criticalCluesFound: studentCaseProgress.criticalCluesFound,
+      hintsUsed: studentCaseProgress.hintsUsed,
+      timelineAccuracy: studentCaseProgress.timelineAccuracy,
+      contradictionsFound: studentCaseProgress.contradictionsFound,
+      avgPressure: studentCaseProgress.avgPressureReached,
       finalResult: studentCaseProgress.status,
       solvedTime: studentCaseProgress.completedAt,
     })

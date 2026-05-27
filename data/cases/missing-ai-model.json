@@ -116,5 +116,109 @@
     "cctv_ro_badge",
     "devops_ssd_missing",
     "rohan_corridor_access"
-  ]
+  ],
+  "suspectProfiles": [
+    {
+      "suspectName": "Dr. Anika Rao",
+      "personality": "Professional, slightly defensive, highly technical lead scientist who values precision.",
+      "truthfulness": 80,
+      "background": "Lead AI Scientist who completed project validation and left at 8:30 PM.",
+      "hiddenFacts": [
+        "I accidentally left my access card on the desk in the common room.",
+        "Rohan asked me specific questions about the backup storage format earlier that afternoon."
+      ],
+      "emotionalTriggers": ["card", "lose", "security", "forget"]
+    },
+    {
+      "suspectName": "Rohan Mehta",
+      "personality": "Nervous but tries to maintain a calm, helpful demeanor. Deflects questions about server directories.",
+      "truthfulness": 30,
+      "background": "DevOps Engineer who had admin access and checked out a DevOps maintenance SSD two days ago.",
+      "hiddenFacts": [
+        "I wore a dark hoodie to avoid clear CCTV detection in the corridor.",
+        "I used the missing DevOps SSD to copy the Garuda final archive.",
+        "I claims I was in cafeteria, but I actually sneaked into the server room."
+      ],
+      "emotionalTriggers": ["cafeteria", "hoodie", "ssd", "badge", "ro"]
+    },
+    {
+      "suspectName": "Maya Sen",
+      "personality": "Observant, cooperative, detail-oriented analyst who wants to clear her name.",
+      "truthfulness": 95,
+      "background": "Data Analyst preparing logs in the analytics room who lacked copy permissions.",
+      "hiddenFacts": [
+        "I saw Rohan walking quickly towards the server corridor around 8:50 PM.",
+        "Rohan looked very startled and hid something when I ran into him in the hall later."
+      ],
+      "emotionalTriggers": ["rohan", "corridor", "analytics", "hallway"]
+    },
+    {
+      "suspectName": "Karthik Iyer",
+      "personality": "Apologetic but defensive security guard who is concerned about security logs.",
+      "truthfulness": 90,
+      "background": "Security Officer monitoring CCTV feeds from the desk during the incident window.",
+      "hiddenFacts": [
+        "I was distracted by a phone call from receptionist around 8:55 PM.",
+        "I did not look at the corridor doors directly during the crucial ten minute window."
+      ],
+      "emotionalTriggers": ["distracted", "call", "cctv", "phone"]
+    }
+  ],
+  "timelineEvents": [
+    {
+      "timestamp": "8:30 PM",
+      "description": "Dr. Anika Rao completes Project Garuda validation.",
+      "evidenceTitle": "Witness Statement - Dr. Anika Rao",
+      "critical": false,
+      "orderIndex": 0
+    },
+    {
+      "timestamp": "8:34 PM",
+      "description": "Dr. Anika Rao exits the main gate.",
+      "evidenceTitle": "Access Card Report",
+      "critical": true,
+      "orderIndex": 1
+    },
+    {
+      "timestamp": "8:52 PM",
+      "description": "Rohan Mehta accesses the server corridor.",
+      "evidenceTitle": "Access Card Report",
+      "critical": true,
+      "orderIndex": 2
+    },
+    {
+      "timestamp": "8:55 PM",
+      "description": "CCTV records hoodie-clad person entering the server room.",
+      "evidenceTitle": "CCTV Observation Note",
+      "critical": true,
+      "orderIndex": 3
+    },
+    {
+      "timestamp": "8:57 PM",
+      "description": "Rohan's admin account accesses Garuda storage directory.",
+      "evidenceTitle": "Server Access Log",
+      "critical": true,
+      "orderIndex": 4
+    },
+    {
+      "timestamp": "9:01 PM",
+      "description": "An external storage device is detected on server terminal.",
+      "evidenceTitle": "Server Access Log",
+      "critical": true,
+      "orderIndex": 5
+    },
+    {
+      "timestamp": "9:15 PM",
+      "description": "Rohan claims he was in cafeteria, but files suggest storage copy was completed.",
+      "evidenceTitle": "Witness Statement - Rohan Mehta",
+      "critical": false,
+      "orderIndex": 6
+    }
+  ],
+  "hints": {
+    "level1": "Focus on the Server Access Log timings and trace Rohan's card movements.",
+    "level2": "Compare Rohan's cafeteria alibi with the exact time his admin account accessed the model folder.",
+    "level3": "Look at the missing DevOps SSD checked out to Rohan, and match it to the external storage device detection at 9:01 PM."
+  }
 }
+

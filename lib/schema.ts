@@ -45,6 +45,8 @@ export const cases = pgTable("cases", {
   status: varchar("status", { length: 16 }).notNull().default("active"),
   correctCulprit: varchar("correct_culprit", { length: 120 }).notNull(),
   solutionExplanation: text("solution_explanation").notNull(),
+  completionScoreThreshold: integer("completion_score_threshold").default(40).notNull(),
+  completionCluesThreshold: integer("completion_clues_threshold").default(3).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -91,6 +93,10 @@ export const studentCaseProgress = pgTable(
     score: integer("score").default(0).notNull(),
     questionsUsed: integer("questions_used").default(0).notNull(),
     criticalCluesFound: integer("critical_clues_found").default(0).notNull(),
+    hintsUsed: integer("hints_used").default(0).notNull(),
+    timelineAccuracy: integer("timeline_accuracy").default(0).notNull(),
+    contradictionsFound: integer("contradictions_found").default(0).notNull(),
+    avgPressureReached: integer("avg_pressure_reached").default(0).notNull(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
   },
@@ -105,6 +111,7 @@ export const chatMessages = pgTable("chat_messages", {
   caseId: uuid("case_id").notNull(),
   role: messageRoleEnum("role").notNull(),
   content: text("content").notNull(),
+  suspectName: varchar("suspect_name", { length: 120 }),
   citations: jsonb("citations").$type<Record<string, unknown>[]>().default([]).notNull(),
   retrievedChunks: jsonb("retrieved_chunks").$type<Record<string, unknown>[]>().default([]).notNull(),
   scoreDelta: integer("score_delta").default(0).notNull(),
@@ -162,3 +169,66 @@ export const finalAccusations = pgTable(
     ),
   }),
 );
+
+export const suspectProfiles = pgTable("suspect_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  caseId: uuid("case_id").notNull(),
+  suspectName: varchar("suspect_name", { length: 120 }).notNull(),
+  personality: text("personality").notNull(),
+  truthfulness: integer("truthfulness").notNull(),
+  background: text("background").notNull(),
+  hiddenFacts: jsonb("hidden_facts").$type<string[]>().default([]).notNull(),
+  emotionalTriggers: jsonb("emotional_triggers").$type<string[]>().default([]).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const studentSuspectInterrogationState = pgTable(
+  "student_suspect_interrogation_state",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    studentId: uuid("student_id").notNull(),
+    caseId: uuid("case_id").notNull(),
+    suspectName: varchar("suspect_name", { length: 120 }).notNull(),
+    pressureLevel: integer("pressure_level").default(0).notNull(),
+    contradictionsFound: integer("contradictions_found").default(0).notNull(),
+    revealedFacts: jsonb("revealed_facts").$type<string[]>().default([]).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueStudentSuspectInterrogation: uniqueIndex("student_suspect_interrogation_unique").on(
+      table.studentId,
+      table.caseId,
+      table.suspectName,
+    ),
+  }),
+);
+
+export const timelineEvents = pgTable("timeline_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  caseId: uuid("case_id").notNull(),
+  timestamp: varchar("timestamp", { length: 64 }).notNull(),
+  description: text("description").notNull(),
+  evidenceId: uuid("evidence_id").notNull(),
+  critical: boolean("critical").default(false).notNull(),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const studentTimelineProgress = pgTable(
+  "student_timeline_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    studentId: uuid("student_id").notNull(),
+    caseId: uuid("case_id").notNull(),
+    eventOrder: jsonb("event_order").$type<string[]>().default([]).notNull(),
+    submitted: boolean("submitted").default(false).notNull(),
+    score: integer("score").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueStudentTimeline: uniqueIndex("student_timeline_unique").on(table.studentId, table.caseId),
+  }),
+);
+

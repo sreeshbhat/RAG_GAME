@@ -32,14 +32,28 @@ export async function getRegisteredStudents(): Promise<RegisteredStudent[]> {
 
 export async function findRegisteredStudent(name: string, rollNumber: string) {
   const students = await getRegisteredStudents();
-  const normalizedName = normalizeText(name);
-  const normalizedRollNumber = normalizeText(rollNumber);
+  const normalizedInputName = normalizeText(name);
+  const normalizedInputRoll = normalizeText(rollNumber);
+
+  // 1. Direct normalized match
+  const directMatch = students.find(
+    (student) =>
+      normalizeText(student.name) === normalizedInputName &&
+      normalizeText(student.rollNumber) === normalizedInputRoll,
+  );
+  if (directMatch) return directMatch;
+
+  // 2. Fuzzy match (ignoring spaces, punctuation, dots, etc.)
+  const clean = (val: string) => val.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cleanInputName = clean(name);
+  const cleanInputRoll = clean(rollNumber);
 
   return (
     students.find(
       (student) =>
-        normalizeText(student.name) === normalizedName &&
-        normalizeText(student.rollNumber) === normalizedRollNumber,
+        clean(student.name) === cleanInputName &&
+        clean(student.rollNumber) === cleanInputRoll,
     ) ?? null
   );
 }
+

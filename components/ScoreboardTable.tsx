@@ -13,6 +13,10 @@ export function ScoreboardTable({
     score: number;
     questionsAsked: number;
     criticalCluesFound: number;
+    hintsUsed?: number;
+    timelineAccuracy?: number;
+    contradictionsFound?: number;
+    avgPressure?: number;
     finalResult: string;
     solvedTime: string | Date | null;
   }>;
@@ -31,6 +35,10 @@ export function ScoreboardTable({
               <th className="pb-3">Score</th>
               <th className="pb-3">Questions</th>
               <th className="pb-3">Clues</th>
+              <th className="pb-3">Hints</th>
+              <th className="pb-3">Timeline Acc</th>
+              <th className="pb-3">Contradictions</th>
+              <th className="pb-3">Avg Pressure</th>
               <th className="pb-3">Result</th>
               <th className="pb-3">Solved Time</th>
             </tr>
@@ -45,6 +53,10 @@ export function ScoreboardTable({
                 <td className="py-3">{row.score}</td>
                 <td className="py-3">{row.questionsAsked}</td>
                 <td className="py-3">{row.criticalCluesFound}</td>
+                <td className="py-3">{row.hintsUsed ?? 0}</td>
+                <td className="py-3">{row.timelineAccuracy ?? 0}%</td>
+                <td className="py-3">{row.contradictionsFound ?? 0}</td>
+                <td className="py-3">{row.avgPressure ?? 0}%</td>
                 <td className="py-3 capitalize">{row.finalResult.replaceAll("_", " ")}</td>
                 <td className="py-3">{formatDate(row.solvedTime)}</td>
               </tr>
@@ -55,3 +67,4 @@ export function ScoreboardTable({
     </Card>
   );
 }
+

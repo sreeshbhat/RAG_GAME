@@ -36,7 +36,30 @@ export type CaseFile = {
     clueKey: string | null;
   }[];
   criticalClues: string[];
+  suspectProfiles?: {
+    suspectName: string;
+    personality: string;
+    truthfulness: number;
+    background: string;
+    hiddenFacts: string[];
+    emotionalTriggers: string[];
+  }[];
+  timelineEvents?: {
+    timestamp: string;
+    description: string;
+    evidenceTitle: string;
+    critical: boolean;
+    orderIndex: number;
+  }[];
+  hints?: {
+    level1: string;
+    level2: string;
+    level3: string;
+  };
+  completionScoreThreshold?: number;
+  completionCluesThreshold?: number;
 };
+
 
 const casesDir = path.join(process.cwd(), "data", "cases");
 

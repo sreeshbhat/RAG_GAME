@@ -1,8 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 
 import { FinalAccusationForm } from "@/components/FinalAccusationForm";
+import { Navbar } from "@/components/Navbar";
 import { getStudentSession } from "@/lib/auth";
 import { getCaseGameData, getStudentByRegisteredId } from "@/lib/game-service";
+import { isCaseUnlockedForStudent } from "@/lib/level-service";
 
 export default async function AccusePage({
   params,
@@ -14,17 +16,31 @@ export default async function AccusePage({
 
   const { caseId } = await params;
   const dbStudent = await getStudentByRegisteredId(session.registeredStudentId);
-  const caseData = await getCaseGameData(caseId, dbStudent?.id);
+  if (!dbStudent) redirect("/login");
+
+  const caseData = await getCaseGameData(caseId, dbStudent.id);
   if (!caseData) notFound();
 
+  const unlocked = await isCaseUnlockedForStudent(dbStudent.id, caseId);
+  if (!unlocked) {
+    redirect("/cases");
+  }
+
   return (
-    <main className="mx-auto max-w-5xl px-6 py-16">
-      <FinalAccusationForm
-        caseId={caseId}
-        suspects={caseData.suspects.map((suspect) => suspect.name)}
-        evidenceTitles={caseData.evidence.map((entry) => entry.title)}
-        locked={caseData.accusationLocked}
-      />
-    </main>
+    <>
+      <Navbar studentName={session.name} rollNumber={session.rollNumber} />
+      <main className="mx-auto max-w-5xl px-6 py-16">
+        <FinalAccusationForm
+          caseId={caseId}
+          suspects={caseData.suspects.map((suspect) => suspect.name)}
+          evidenceTitles={caseData.evidence.map((entry) => entry.title)}
+          locked={caseData.accusationLocked}
+          hasSubmittedAccusation={caseData.hasSubmittedAccusation}
+          accusationFeedback={caseData.accusationFeedback}
+        />
+      </main>
+    </>
   );
 }
+
+

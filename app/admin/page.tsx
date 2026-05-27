@@ -1,5 +1,6 @@
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AdminLoginForm } from "@/components/AdminLoginForm";
+import { Navbar } from "@/components/Navbar";
 import { hasAdminSession } from "@/lib/admin-auth";
 import { getAllCaseFiles } from "@/lib/case-loader";
 import { getAdminProgress } from "@/lib/game-service";
@@ -22,14 +23,18 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16">
-      <AdminDashboard
-        students={students}
-        activeCases={cases.map((item) => ({ title: item.title, slug: item.slug }))}
-        scoreboard={progress.scoreboard}
-        hallucinationReports={progress.hallucinationReports}
-        chatLogs={progress.chatLogs}
-      />
-    </main>
+    <>
+      <Navbar isAdmin={true} />
+      <main className="mx-auto max-w-7xl px-6 py-16">
+        <AdminDashboard
+          students={students}
+          activeCases={cases.map((item) => ({ title: item.title, slug: item.slug }))}
+          scoreboard={progress.scoreboard}
+          hallucinationReports={progress.hallucinationReports}
+          chatLogs={progress.chatLogs}
+        />
+      </main>
+    </>
   );
 }
+
