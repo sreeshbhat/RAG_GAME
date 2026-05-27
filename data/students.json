@@ -1,0 +1,14 @@
+[
+  {
+    "id": "stu_001",
+    "name": "Aarav Sharma",
+    "email": "aarav@example.com",
+    "rollNumber": "23EG001"
+  },
+  {
+    "id": "stu_002",
+    "name": "Meera Rao",
+    "email": "meera@example.com",
+    "rollNumber": "23EG002"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "name": "rag-detective-game",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "seed": "tsx scripts/seed.ts",
+    "import:cases": "tsx scripts/import-cases.ts",
+    "reset:progress": "tsx scripts/reset-progress.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "@radix-ui/react-accordion": "^1.2.1",
+    "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-slot": "^1.1.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.36.4",
+    "framer-motion": "^11.13.1",
+    "groq-sdk": "^0.7.0",
+    "lucide-react": "^0.453.0",
+    "next": "^15.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.28.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

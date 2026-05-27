@@ -1,0 +1,120 @@
+{
+  "slug": "missing-ai-model",
+  "title": "The Missing AI Model",
+  "difficulty": "medium",
+  "estimatedTime": "30 minutes",
+  "briefing": "At NexaTech Research Lab, an experimental AI model named Project Garuda disappeared from a secure server at 9:00 PM. Review the evidence, test witness statements, and identify who moved the model off the lab systems.",
+  "correctCulprit": "Rohan Mehta",
+  "solutionExplanation": "Rohan had both the required access and the physical opportunity. His admin account accessed the storage folder, CCTV captured a badge showing 'RO', the server detected removable storage, and the missing DevOps SSD was assigned to him.",
+  "suspects": [
+    {
+      "name": "Dr. Anika Rao",
+      "role": "Lead AI Scientist",
+      "description": "Completed final validation and says she left the lab before the incident."
+    },
+    {
+      "name": "Rohan Mehta",
+      "role": "DevOps Engineer",
+      "description": "Had infrastructure access and claims he was in the cafeteria."
+    },
+    {
+      "name": "Maya Sen",
+      "role": "Data Analyst",
+      "description": "Was preparing analytics reports and lacked export permissions."
+    },
+    {
+      "name": "Karthik Iyer",
+      "role": "Security Officer",
+      "description": "Monitored CCTV feeds from the security desk during the incident window."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Witness Statement - Dr. Anika Rao",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Dr. Anika Rao says she left the lab at 8:30 PM after completing the final model validation. She claims she did not return to the server room after that. Her access card was last used at the main exit gate at 8:34 PM.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Witness Statement - Rohan Mehta",
+      "sectionLabel": "Statement 2",
+      "type": "witness_statement",
+      "content": "Rohan Mehta says he was in the cafeteria from 8:45 PM to 9:15 PM. He says he did not enter the server room. However, his admin credentials were used at 8:57 PM to access the model storage directory.",
+      "isCritical": true,
+      "clueKey": "rohan_admin_access"
+    },
+    {
+      "title": "Witness Statement - Maya Sen",
+      "sectionLabel": "Statement 3",
+      "type": "witness_statement",
+      "content": "Maya Sen says she was preparing a report in the analytics room between 8:40 PM and 9:20 PM. Her laptop activity logs show spreadsheet edits during this time. She did not have admin access to the model storage directory.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Witness Statement - Karthik Iyer",
+      "sectionLabel": "Statement 4",
+      "type": "witness_statement",
+      "content": "Karthik Iyer says he was monitoring CCTV feeds from the security desk. He noticed a person wearing a dark hoodie entering the server room around 8:55 PM. The face was not fully visible.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Server Access Log",
+      "sectionLabel": "Log 1",
+      "type": "server_log",
+      "content": "At 8:57 PM, admin user rohan.dev accessed the Project Garuda storage folder. At 8:59 PM, a compressed archive named garuda_final_backup.zip was created. At 9:01 PM, a removable storage device was detected on the server terminal.",
+      "isCritical": true,
+      "clueKey": "external_storage_detected"
+    },
+    {
+      "title": "CCTV Observation Note",
+      "sectionLabel": "CCTV 3",
+      "type": "cctv_note",
+      "content": "CCTV camera 3 recorded a person entering the server room at 8:55 PM. The person appeared to be carrying a small external drive. The person's ID badge was partially visible and showed the letters RO.",
+      "isCritical": true,
+      "clueKey": "cctv_ro_badge"
+    },
+    {
+      "title": "Access Card Report",
+      "sectionLabel": "Access 1",
+      "type": "access_log",
+      "content": "Dr. Anika Rao exited the main gate at 8:34 PM. Maya Sen entered the analytics room at 8:39 PM and did not leave until 9:23 PM. Rohan Mehta accessed the corridor near the server room at 8:52 PM. Karthik Iyer remained at the security desk from 8:30 PM to 9:30 PM.",
+      "isCritical": true,
+      "clueKey": "rohan_corridor_access"
+    },
+    {
+      "title": "Device Inventory Report",
+      "sectionLabel": "Inventory 1",
+      "type": "forensic_report",
+      "content": "One encrypted external SSD assigned to DevOps was missing after the incident. The device was last checked out by Rohan Mehta for maintenance testing two days before the incident.",
+      "isCritical": true,
+      "clueKey": "devops_ssd_missing"
+    },
+    {
+      "title": "Lab Policy Document",
+      "sectionLabel": "Policy 1",
+      "type": "policy_document",
+      "content": "Only DevOps engineers and lead scientists have permission to access the Project Garuda storage directory. Data analysts do not have production model export permissions.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Incident Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "8:30 PM: Dr. Anika completed validation. 8:34 PM: Dr. Anika exited the lab. 8:52 PM: Rohan accessed the server corridor. 8:55 PM: CCTV captured entry into the server room. 8:57 PM: Rohan's admin account accessed the model folder. 8:59 PM: Project archive created. 9:01 PM: External storage device detected. 9:15 PM: Rohan claimed he was still in the cafeteria. 9:30 PM: Model reported missing.",
+      "isCritical": false,
+      "clueKey": null
+    }
+  ],
+  "criticalClues": [
+    "rohan_admin_access",
+    "external_storage_detected",
+    "cctv_ro_badge",
+    "devops_ssd_missing",
+    "rohan_corridor_access"
+  ]
+}
