@@ -48,6 +48,15 @@ function getUnlockClueRequirement(difficulty: string) {
   return unlockRules[difficulty] ?? 3;
 }
 
+function isUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "23505"
+  );
+}
+
 export async function upsertStudentRecord(student: RegisteredStudent) {
   const db = getDb();
   const existing = await db
@@ -712,78 +721,82 @@ export async function submitAccusation({
   selectedEvidence: string[];
 }) {
   const db = getDb();
-  return await db.transaction(async (tx) => {
-    const [caseRecord] = await tx.select().from(cases).where(eq(cases.slug, caseSlug)).limit(1);
-    if (!caseRecord) throw new Error("Case not found.");
+  const [caseRecord] = await db.select().from(cases).where(eq(cases.slug, caseSlug)).limit(1);
+  if (!caseRecord) throw new Error("Case not found.");
 
-    const existing = await tx
-      .select()
-      .from(finalAccusations)
-      .where(and(eq(finalAccusations.studentId, studentDbId), eq(finalAccusations.caseId, caseRecord.id)))
-      .limit(1);
-    if (existing[0]) {
-      throw new Error("Final accusation already submitted for this case.");
-    }
+  const [existing] = await db
+    .select({ id: finalAccusations.id })
+    .from(finalAccusations)
+    .where(and(eq(finalAccusations.studentId, studentDbId), eq(finalAccusations.caseId, caseRecord.id)))
+    .limit(1);
+  if (existing) {
+    throw new Error("Final accusation already submitted for this case.");
+  }
 
-    const clueRows = await tx
-      .select()
-      .from(studentClues)
-      .where(and(eq(studentClues.studentId, studentDbId), eq(studentClues.caseId, caseRecord.id)));
-    const requiredClues = getUnlockClueRequirement(caseRecord.difficulty);
-    if (clueRows.length < requiredClues) {
-      throw new Error(`At least ${requiredClues} critical clues are required before a final accusation.`);
-    }
+  const clueRows = await db
+    .select()
+    .from(studentClues)
+    .where(and(eq(studentClues.studentId, studentDbId), eq(studentClues.caseId, caseRecord.id)));
+  const requiredClues = getUnlockClueRequirement(caseRecord.difficulty);
+  if (clueRows.length < requiredClues) {
+    throw new Error(`At least ${requiredClues} critical clues are required before a final accusation.`);
+  }
 
-    const caseFile = await getCaseFileBySlug(caseSlug);
-    const evidenceMatches = (caseFile?.evidence ?? []).filter((entry) =>
-      selectedEvidence.includes(entry.title),
-    );
-    const correctEvidenceCount = evidenceMatches.filter(
-      (entry) => entry.isCritical && entry.clueKey,
-    ).length;
-    const isCorrect = accusedSuspect === caseRecord.correctCulprit;
-    const strongExplanation =
-      explanation.length > 120 &&
-      selectedEvidence.some((title) => explanation.toLowerCase().includes(title.toLowerCase().split(" ")[0]));
+  const caseFile = await getCaseFileBySlug(caseSlug);
+  const evidenceMatches = (caseFile?.evidence ?? []).filter((entry) =>
+    selectedEvidence.includes(entry.title),
+  );
+  const correctEvidenceCount = evidenceMatches.filter(
+    (entry) => entry.isCritical && entry.clueKey,
+  ).length;
+  const isCorrect = accusedSuspect === caseRecord.correctCulprit;
+  const strongExplanation =
+    explanation.length > 120 &&
+    selectedEvidence.some((title) => explanation.toLowerCase().includes(title.toLowerCase().split(" ")[0]));
 
-    const scoreEvents: ScoreEvent[] = [];
-    if (isCorrect) scoreEvents.push("correct_culprit" as const);
-    else scoreEvents.push("wrong_culprit" as const);
+  const scoreEvents: ScoreEvent[] = [];
+  if (isCorrect) scoreEvents.push("correct_culprit" as const);
+  else scoreEvents.push("wrong_culprit" as const);
 
-    if (correctEvidenceCount >= 2) scoreEvents.push("correct_supporting_evidence" as const);
-    if (strongExplanation) scoreEvents.push("strong_explanation" as const);
-    else scoreEvents.push("weak_explanation" as const);
-    if (!/maybe|probably|guess|perhaps/i.test(explanation)) {
-      scoreEvents.push("no_unsupported_claim" as const);
-    }
+  if (correctEvidenceCount >= 2) scoreEvents.push("correct_supporting_evidence" as const);
+  if (strongExplanation) scoreEvents.push("strong_explanation" as const);
+  else scoreEvents.push("weak_explanation" as const);
+  if (!/maybe|probably|guess|perhaps/i.test(explanation)) {
+    scoreEvents.push("no_unsupported_claim" as const);
+  }
 
-    const [progress] = await tx
-      .select()
-      .from(studentCaseProgress)
-      .where(and(eq(studentCaseProgress.studentId, studentDbId), eq(studentCaseProgress.caseId, caseRecord.id)))
-      .limit(1);
+  const [progress] = await db
+    .select()
+    .from(studentCaseProgress)
+    .where(and(eq(studentCaseProgress.studentId, studentDbId), eq(studentCaseProgress.caseId, caseRecord.id)))
+    .limit(1);
+  if (!progress) {
+    throw new Error("Student case progress not found.");
+  }
 
-    if (progress?.questionsUsed && progress.questionsUsed < 10) {
-      scoreEvents.push("under_10_questions_bonus" as const);
-    }
-    if (caseFile && clueRows.length === caseFile.criticalClues.length) {
-      scoreEvents.push("all_clues_bonus" as const);
-    }
+  if (progress.questionsUsed > 0 && progress.questionsUsed < 10) {
+    scoreEvents.push("under_10_questions_bonus" as const);
+  }
+  if (caseFile && clueRows.length === caseFile.criticalClues.length) {
+    scoreEvents.push("all_clues_bonus" as const);
+  }
 
-    const [timelineProg] = await tx
-      .select()
-      .from(studentTimelineProgress)
-      .where(and(eq(studentTimelineProgress.studentId, studentDbId), eq(studentTimelineProgress.caseId, caseRecord.id)))
-      .limit(1);
+  const [timelineProg] = await db
+    .select()
+    .from(studentTimelineProgress)
+    .where(and(eq(studentTimelineProgress.studentId, studentDbId), eq(studentTimelineProgress.caseId, caseRecord.id)))
+    .limit(1);
 
-    const timelineScore = timelineProg?.submitted ? timelineProg.score : 0;
-    const totalAwarded = applyScore(...scoreEvents) + timelineScore;
+  const timelineScore = timelineProg?.submitted ? timelineProg.score : 0;
+  const totalAwarded = applyScore(...scoreEvents) + timelineScore;
 
-    const feedback = isCorrect
-      ? `Correct. ${caseRecord.solutionExplanation}`
-      : `Incorrect. ${caseRecord.solutionExplanation}`;
+  const feedback = isCorrect
+    ? `Correct. ${caseRecord.solutionExplanation}`
+    : `Incorrect. ${caseRecord.solutionExplanation}`;
 
-    const [accusation] = await tx
+  let accusation;
+  try {
+    [accusation] = await db
       .insert(finalAccusations)
       .values({
         studentId: studentDbId,
@@ -796,27 +809,30 @@ export async function submitAccusation({
         feedback,
       })
       .returning();
-
-    if (progress) {
-      const finalScore = progress.score + totalAwarded;
-      const finalClues = progress.criticalCluesFound;
-      const isCompleted =
-        finalScore >= caseRecord.completionScoreThreshold &&
-        finalClues >= caseRecord.completionCluesThreshold;
-
-      await tx
-        .update(studentCaseProgress)
-        .set({
-          status: isCompleted ? "solved" : "failed",
-          score: finalScore,
-          timelineAccuracy: timelineProg?.submitted ? timelineProg.score : 0,
-          completedAt: new Date(),
-        })
-        .where(eq(studentCaseProgress.id, progress.id));
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      throw new Error("Final accusation already submitted for this case.");
     }
+    throw error;
+  }
 
-    return accusation;
-  });
+  const finalScore = progress.score + totalAwarded;
+  const finalClues = progress.criticalCluesFound;
+  const isCompleted =
+    finalScore >= caseRecord.completionScoreThreshold &&
+    finalClues >= caseRecord.completionCluesThreshold;
+
+  await db
+    .update(studentCaseProgress)
+    .set({
+      status: isCompleted ? "solved" : "failed",
+      score: finalScore,
+      timelineAccuracy: timelineScore,
+      completedAt: new Date(),
+    })
+    .where(eq(studentCaseProgress.id, progress.id));
+
+  return accusation;
 }
 
 export async function getScoreboard() {
