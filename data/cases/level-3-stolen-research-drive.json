@@ -1,0 +1,113 @@
+{
+  "slug": "level-3-stolen-research-drive",
+  "title": "Level 3: The Stolen Research Drive",
+  "difficulty": "medium",
+  "estimatedTime": "25 minutes",
+  "briefing": "A research drive containing unpublished project data disappeared from a locked storage cabinet. Several people had partial access, but the clues are conflicting.",
+  "correctCulprit": "Farhan Qureshi",
+  "solutionExplanation": "Farhan had cabinet access through a borrowed key, was present during the unexplained cabinet opening, and his laptop later connected to a drive matching the missing device ID.",
+  "suspects": [
+    {
+      "name": "Dr. Kavya Menon",
+      "role": "Research Supervisor",
+      "description": "Owned the research drive and controlled the cabinet key."
+    },
+    {
+      "name": "Farhan Qureshi",
+      "role": "Junior Researcher",
+      "description": "Needed access to old experiment data for a presentation."
+    },
+    {
+      "name": "Isha Verma",
+      "role": "Data Cleaning Assistant",
+      "description": "Worked with copied datasets but did not usually access physical drives."
+    },
+    {
+      "name": "Manoj Bhat",
+      "role": "Maintenance Staff",
+      "description": "Entered the lab for air-conditioning repair."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Cabinet Access Register",
+      "sectionLabel": "Register 1",
+      "type": "object_evidence",
+      "content": "The storage cabinet key was signed out by Dr. Kavya at 10:00 AM and returned at 10:20 AM. Later, a duplicate key was signed out by Farhan Qureshi at 2:10 PM for checking archived files.",
+      "isCritical": true,
+      "clueKey": "farhan_signed_duplicate_key"
+    },
+    {
+      "title": "Witness Statement - Farhan Qureshi",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Farhan says he borrowed the duplicate key but only opened the cabinet to check a printed file list. He says he did not remove any drive.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Cabinet Sensor Log",
+      "sectionLabel": "Sensor 1",
+      "type": "access_log",
+      "content": "The storage cabinet was opened at 2:16 PM and closed at 2:21 PM. No other cabinet opening was recorded after that until the missing drive was reported.",
+      "isCritical": true,
+      "clueKey": "cabinet_opened_during_farhan_access"
+    },
+    {
+      "title": "USB Device Forensic Report",
+      "sectionLabel": "Forensic 1",
+      "type": "forensic_report",
+      "content": "A laptop assigned to Farhan connected to a USB storage device at 2:34 PM. The connected device serial number ended with X9A2, matching the missing research drive inventory record.",
+      "isCritical": true,
+      "clueKey": "farhan_laptop_matched_drive"
+    },
+    {
+      "title": "Research Drive Inventory",
+      "sectionLabel": "Inventory 1",
+      "type": "object_evidence",
+      "content": "The missing research drive is listed as Model SecureData V2, serial number RD-77-X9A2. It was last physically verified in the cabinet at 10:15 AM.",
+      "isCritical": true,
+      "clueKey": "drive_serial_x9a2"
+    },
+    {
+      "title": "Witness Statement - Isha Verma",
+      "sectionLabel": "Statement 2",
+      "type": "witness_statement",
+      "content": "Isha says she worked remotely on a cleaned copy of the dataset and did not enter the research lab after lunch. Wi-Fi logs show her laptop connected from the library area between 2:00 PM and 3:00 PM.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Maintenance Work Order",
+      "sectionLabel": "Work Order 1",
+      "type": "crime_scene_note",
+      "content": "Manoj Bhat repaired the air-conditioning vent between 1:30 PM and 1:55 PM. He was escorted by lab assistant staff and did not access the storage cabinet area.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Lab CCTV Note",
+      "sectionLabel": "CCTV 1",
+      "type": "cctv_note",
+      "content": "CCTV near the lab entrance shows Farhan entering at 2:12 PM and leaving at 2:26 PM carrying a laptop sleeve. The camera angle does not clearly show whether a drive was inside the sleeve.",
+      "isCritical": true,
+      "clueKey": "farhan_present_after_key_checkout"
+    },
+    {
+      "title": "Incident Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "10:15 AM: Drive verified in cabinet. 1:30 PM: Maintenance entered lab. 1:55 PM: Maintenance left. 2:10 PM: Farhan signed duplicate key. 2:16 PM: Cabinet opened. 2:26 PM: Farhan left lab. 2:34 PM: Farhan laptop connected to USB drive ending X9A2. 3:10 PM: Drive reported missing.",
+      "isCritical": true,
+      "clueKey": "timeline_links_farhan"
+    }
+  ],
+  "criticalClues": [
+    "farhan_signed_duplicate_key",
+    "cabinet_opened_during_farhan_access",
+    "drive_serial_x9a2",
+    "farhan_laptop_matched_drive",
+    "farhan_present_after_key_checkout",
+    "timeline_links_farhan"
+  ]
+}

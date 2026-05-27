@@ -9,11 +9,11 @@ import { loginSchema } from "@/lib/validation";
 export async function POST(request: Request) {
   try {
     const body = loginSchema.parse(await request.json());
-    const registered = await findRegisteredStudent(body.name, body.email);
+    const registered = await findRegisteredStudent(body.name, body.rollNumber);
 
     if (!registered) {
       return NextResponse.json(
-        { error: "Name and email do not match the registered student list." },
+        { error: "Name and roll number do not match the registered student list." },
         { status: 401 },
       );
     }

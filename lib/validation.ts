@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   name: z.string().min(2).max(120),
-  email: z.string().email().max(180),
+  rollNumber: z.string().min(3).max(64),
 });
 
 export const adminLoginSchema = z.object({

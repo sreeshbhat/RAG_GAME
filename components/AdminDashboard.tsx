@@ -12,7 +12,7 @@ export function AdminDashboard({
   hallucinationReports,
   chatLogs,
 }: {
-  students: Array<{ name: string; email: string; rollNumber: string }>;
+  students: Array<{ name: string; rollNumber: string; classSection?: string }>;
   activeCases: Array<{ title: string; slug: string }>;
   scoreboard: Array<any>;
   hallucinationReports: Array<any>;
@@ -25,7 +25,9 @@ export function AdminDashboard({
           <CardTitle>Registered Students</CardTitle>
           <div className="mt-4 space-y-2 text-sm text-muted">
             {students.map((student) => (
-              <p key={student.email}>{student.name} • {student.rollNumber} • {student.email}</p>
+              <p key={`${student.rollNumber}-${student.name}`}>
+                {student.name} • {student.rollNumber}{student.classSection ? ` • ${student.classSection}` : ""}
+              </p>
             ))}
           </div>
         </Card>

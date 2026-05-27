@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 export function LoginForm() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [rollNumber, setRollNumber] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -22,7 +22,7 @@ export function LoginForm() {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ name, rollNumber }),
     });
 
     const payload = await response.json();
@@ -41,7 +41,7 @@ export function LoginForm() {
     <Card className="mx-auto w-full max-w-md">
       <CardTitle>Student Login</CardTitle>
       <CardDescription className="mt-2">
-        Enter the exact registered name and email used in the class roster.
+        Enter the exact registered name and roll number from the class roster.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
@@ -49,12 +49,11 @@ export function LoginForm() {
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Aarav Sharma" />
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-muted">Student email</label>
+          <label className="text-sm text-muted">Roll number</label>
           <Input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="aarav@example.com"
-            type="email"
+            value={rollNumber}
+            onChange={(e) => setRollNumber(e.target.value)}
+            placeholder="23EG106A05"
           />
         </div>
         {error ? <p className="text-sm text-danger">{error}</p> : null}

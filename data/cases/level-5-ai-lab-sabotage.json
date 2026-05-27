@@ -1,0 +1,121 @@
+{
+  "slug": "level-5-ai-lab-sabotage",
+  "title": "Level 5: AI Lab Sabotage",
+  "difficulty": "hard",
+  "estimatedTime": "35 minutes",
+  "briefing": "An AI training run failed after the dataset was silently modified. The sabotage caused the model accuracy to collapse before a major demo.",
+  "correctCulprit": "Devika Saran",
+  "solutionExplanation": "Devika submitted a disguised dataset patch, used another person's terminal briefly, and the modified labels match her failed experiment branch.",
+  "suspects": [
+    {
+      "name": "Devika Saran",
+      "role": "ML Engineer",
+      "description": "Worked on an alternative training approach that was rejected before the demo."
+    },
+    {
+      "name": "Arjun Nair",
+      "role": "MLOps Engineer",
+      "description": "Managed training pipelines and GPU job scheduling."
+    },
+    {
+      "name": "Sara Khan",
+      "role": "Data Curator",
+      "description": "Prepared and verified labeled datasets."
+    },
+    {
+      "name": "Nitin Rao",
+      "role": "Demo Coordinator",
+      "description": "Coordinated demo slides and presentation flow."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Training Failure Report",
+      "sectionLabel": "Report 1",
+      "type": "forensic_report",
+      "content": "The model accuracy dropped from 91 percent to 43 percent after the 7:10 PM dataset update. The failure was caused by label mismatches in 320 validation records.",
+      "isCritical": true,
+      "clueKey": "accuracy_drop_after_dataset_update"
+    },
+    {
+      "title": "Dataset Patch Log",
+      "sectionLabel": "Git Log 1",
+      "type": "server_log",
+      "content": "A patch named normalize_metadata_fix was merged at 7:10 PM. The patch description mentioned metadata formatting, but it also changed validation labels in the file val_labels.csv.",
+      "isCritical": true,
+      "clueKey": "patch_changed_validation_labels"
+    },
+    {
+      "title": "Commit Attribution Note",
+      "sectionLabel": "Git Log 2",
+      "type": "server_log",
+      "content": "The dataset patch was submitted from Arjun Nair's terminal session. However, Arjun's badge log shows he was in the GPU server room during the exact commit time.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Terminal Activity Snapshot",
+      "sectionLabel": "Forensic 1",
+      "type": "forensic_report",
+      "content": "At 7:08 PM, Devika Saran's account authenticated on Arjun's workstation for 4 minutes. The dataset patch was committed at 7:10 PM from that workstation.",
+      "isCritical": true,
+      "clueKey": "devika_used_arjun_workstation"
+    },
+    {
+      "title": "Rejected Experiment Branch",
+      "sectionLabel": "Git Log 3",
+      "type": "server_log",
+      "content": "Devika's rejected branch experiment/devika-alt-loss contained the same pattern of label remapping later found in the sabotaged validation file.",
+      "isCritical": true,
+      "clueKey": "devika_branch_same_label_pattern"
+    },
+    {
+      "title": "Witness Statement - Devika Saran",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Devika says she briefly used Arjun's workstation only to check GPU availability. She denies modifying the dataset.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Witness Statement - Arjun Nair",
+      "sectionLabel": "Statement 2",
+      "type": "witness_statement",
+      "content": "Arjun says he left his workstation unlocked while checking GPU utilization in the server room. He claims he did not approve any dataset patch.",
+      "isCritical": true,
+      "clueKey": "arjun_left_workstation_unlocked"
+    },
+    {
+      "title": "Data Curator Verification Log",
+      "sectionLabel": "Verification 1",
+      "type": "forensic_report",
+      "content": "Sara Khan completed dataset verification at 6:40 PM. At that time, validation labels passed all consistency checks.",
+      "isCritical": true,
+      "clueKey": "dataset_clean_before_patch"
+    },
+    {
+      "title": "Demo Coordinator Schedule",
+      "sectionLabel": "Schedule 1",
+      "type": "timeline",
+      "content": "Nitin Rao was in the auditorium between 6:50 PM and 7:30 PM testing the projector and slides. He did not have repository write access.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "AI Lab Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "6:40 PM: Dataset verification passed. 7:08 PM: Devika authenticated on Arjun's workstation. 7:10 PM: normalize_metadata_fix patch was committed. 7:12 PM: Training job restarted. 7:45 PM: Accuracy collapsed to 43 percent.",
+      "isCritical": true,
+      "clueKey": "timeline_links_devika"
+    }
+  ],
+  "criticalClues": [
+    "accuracy_drop_after_dataset_update",
+    "patch_changed_validation_labels",
+    "devika_used_arjun_workstation",
+    "devika_branch_same_label_pattern",
+    "dataset_clean_before_patch",
+    "timeline_links_devika"
+  ]
+}

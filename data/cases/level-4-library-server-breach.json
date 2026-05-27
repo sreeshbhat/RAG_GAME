@@ -1,0 +1,113 @@
+{
+  "slug": "level-4-library-server-breach",
+  "title": "Level 4: The Library Server Breach",
+  "difficulty": "medium-hard",
+  "estimatedTime": "30 minutes",
+  "briefing": "The digital library server was breached, and premium research articles were downloaded using an internal admin session. The attacker tried to hide behind shared network access.",
+  "correctCulprit": "Tanya D'Souza",
+  "solutionExplanation": "Tanya had temporary admin access, her workstation IP matched the download session, and she attempted to reset logs after the bulk download.",
+  "suspects": [
+    {
+      "name": "Tanya D'Souza",
+      "role": "Library Systems Assistant",
+      "description": "Maintained digital access accounts and had temporary admin rights."
+    },
+    {
+      "name": "Ravi Kulkarni",
+      "role": "Network Technician",
+      "description": "Worked on router maintenance during the incident window."
+    },
+    {
+      "name": "Leena Thomas",
+      "role": "Research Scholar",
+      "description": "Requested access to premium journals but did not have admin privileges."
+    },
+    {
+      "name": "Mohit Sagar",
+      "role": "Library Intern",
+      "description": "Was helping students issue books at the front desk."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Admin Session Log",
+      "sectionLabel": "Server Log 1",
+      "type": "server_log",
+      "content": "An admin session began at 6:42 PM from workstation IP 10.12.4.38. During this session, 186 premium research articles were downloaded in bulk.",
+      "isCritical": true,
+      "clueKey": "bulk_download_from_workstation_38"
+    },
+    {
+      "title": "Workstation Assignment Sheet",
+      "sectionLabel": "Asset Sheet 1",
+      "type": "object_evidence",
+      "content": "Workstation IP 10.12.4.38 was assigned to Tanya D'Souza in the digital library office. Ravi Kulkarni used network terminal 10.12.4.12 during router maintenance.",
+      "isCritical": true,
+      "clueKey": "ip_assigned_to_tanya"
+    },
+    {
+      "title": "Temporary Admin Permission Record",
+      "sectionLabel": "Permission 1",
+      "type": "policy_document",
+      "content": "Tanya D'Souza was granted temporary admin permission from 5:00 PM to 7:00 PM to update journal access settings.",
+      "isCritical": true,
+      "clueKey": "tanya_had_temp_admin"
+    },
+    {
+      "title": "Witness Statement - Tanya D'Souza",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Tanya says she only updated journal access groups and did not download any files. She says the network was unstable and logs may be unreliable.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Router Maintenance Log",
+      "sectionLabel": "Network Log 1",
+      "type": "server_log",
+      "content": "Ravi Kulkarni restarted the library router at 6:20 PM and completed maintenance at 6:35 PM. No router restart occurred during the bulk download at 6:42 PM.",
+      "isCritical": true,
+      "clueKey": "router_not_active_during_breach"
+    },
+    {
+      "title": "Log Reset Attempt",
+      "sectionLabel": "Server Log 2",
+      "type": "server_log",
+      "content": "At 6:58 PM, the admin account attempted to clear download activity logs. The reset attempt failed because audit lock was enabled.",
+      "isCritical": true,
+      "clueKey": "admin_tried_clear_logs"
+    },
+    {
+      "title": "Front Desk Attendance Note",
+      "sectionLabel": "Desk Note 1",
+      "type": "crime_scene_note",
+      "content": "Mohit Sagar handled book issue entries at the front desk from 6:30 PM to 7:05 PM. His account had no digital library admin permissions.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Scholar Access Request",
+      "sectionLabel": "Request 1",
+      "type": "policy_document",
+      "content": "Leena Thomas requested premium journal access at 4:15 PM, but the request was still pending approval. She did not receive admin access.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Digital Library Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "5:00 PM: Tanya received temporary admin rights. 6:20 PM: Router maintenance began. 6:35 PM: Router maintenance ended. 6:42 PM: Bulk download began from 10.12.4.38. 6:58 PM: Log reset attempted. 7:00 PM: Tanya's admin permission expired.",
+      "isCritical": true,
+      "clueKey": "timeline_links_tanya"
+    }
+  ],
+  "criticalClues": [
+    "bulk_download_from_workstation_38",
+    "ip_assigned_to_tanya",
+    "tanya_had_temp_admin",
+    "router_not_active_during_breach",
+    "admin_tried_clear_logs",
+    "timeline_links_tanya"
+  ]
+}

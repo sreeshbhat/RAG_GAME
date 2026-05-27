@@ -1,0 +1,162 @@
+{
+  "slug": "level-6-multi-layer-insider-attack",
+  "title": "Level 6: The Multi-Layer Insider Attack",
+  "difficulty": "expert",
+  "estimatedTime": "45 minutes",
+  "briefing": "A client dataset was exported from a secure analytics platform. The attacker used misleading logs, shared credentials, and staged evidence to blame another employee.",
+  "correctCulprit": "Kabir Malhotra",
+  "solutionExplanation": "Kabir used an old service token, staged access from Priyanka's desk, exported the dataset through a background job, and planted misleading evidence in the audit trail.",
+  "suspects": [
+    {
+      "name": "Kabir Malhotra",
+      "role": "Senior Backend Developer",
+      "description": "Had deep knowledge of service tokens, background jobs, and audit logging."
+    },
+    {
+      "name": "Priyanka Iyer",
+      "role": "Analytics Lead",
+      "description": "Owned the client dashboard and was initially blamed due to workstation activity."
+    },
+    {
+      "name": "Sameer Patil",
+      "role": "Database Administrator",
+      "description": "Managed database backups and access policies."
+    },
+    {
+      "name": "Aditi Rao",
+      "role": "Compliance Officer",
+      "description": "Reviewed audit logs and data access requests."
+    },
+    {
+      "name": "Neeraj Sen",
+      "role": "DevOps Engineer",
+      "description": "Maintained deployment pipelines and server monitoring."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Primary Audit Log",
+      "sectionLabel": "Audit 1",
+      "type": "server_log",
+      "content": "The client dataset export was initiated at 11:42 PM from Priyanka Iyer's workstation ID. The audit log labels the export as manual_dashboard_export.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Workstation Presence Report",
+      "sectionLabel": "Presence 1",
+      "type": "access_log",
+      "content": "Priyanka Iyer's workstation was unlocked between 11:35 PM and 11:50 PM. However, Priyanka's building access card shows she exited the office at 9:05 PM and did not re-enter.",
+      "isCritical": true,
+      "clueKey": "priyanka_not_in_office"
+    },
+    {
+      "title": "Background Job Queue Log",
+      "sectionLabel": "Queue 1",
+      "type": "server_log",
+      "content": "The dataset export was actually executed by background job export_worker_17 at 11:42 PM. The job was triggered using service token svc_legacy_reports.",
+      "isCritical": true,
+      "clueKey": "export_used_legacy_service_token"
+    },
+    {
+      "title": "Service Token Ownership Record",
+      "sectionLabel": "Token 1",
+      "type": "policy_document",
+      "content": "The legacy token svc_legacy_reports was created by Kabir Malhotra six months earlier for a reporting migration. The token should have been retired but was still active.",
+      "isCritical": true,
+      "clueKey": "kabir_created_legacy_token"
+    },
+    {
+      "title": "Token Access History",
+      "sectionLabel": "Token 2",
+      "type": "server_log",
+      "content": "The token svc_legacy_reports was unused for 82 days before the incident. It was tested twice from Kabir Malhotra's development machine at 10:58 PM and 11:06 PM on the same night.",
+      "isCritical": true,
+      "clueKey": "kabir_tested_token_before_export"
+    },
+    {
+      "title": "Misleading Audit Label Note",
+      "sectionLabel": "Forensic 1",
+      "type": "forensic_report",
+      "content": "The label manual_dashboard_export was injected into the audit metadata by the background job. Normal dashboard exports do not use export_worker_17.",
+      "isCritical": true,
+      "clueKey": "audit_label_was_injected"
+    },
+    {
+      "title": "Witness Statement - Kabir Malhotra",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Kabir says he was reviewing old migration scripts from home but did not access any production token. He says the audit clearly points to Priyanka's workstation.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "VPN Connection Log",
+      "sectionLabel": "VPN 1",
+      "type": "access_log",
+      "content": "Kabir Malhotra connected to the company VPN from 10:50 PM to 11:55 PM. During this time, his development machine accessed internal service documentation and token validation endpoints.",
+      "isCritical": true,
+      "clueKey": "kabir_vpn_during_incident"
+    },
+    {
+      "title": "Database Export Record",
+      "sectionLabel": "DB 1",
+      "type": "server_log",
+      "content": "The exported dataset contained 48,000 client records. Sameer Patil's DBA account did not perform any direct export, backup, or dump during the incident window.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Compliance Review Note",
+      "sectionLabel": "Compliance 1",
+      "type": "forensic_report",
+      "content": "Aditi Rao found that the export request did not have an approved compliance ticket. The export path bypassed the normal dashboard approval workflow.",
+      "isCritical": true,
+      "clueKey": "export_bypassed_approval"
+    },
+    {
+      "title": "DevOps Monitoring Alert",
+      "sectionLabel": "Monitoring 1",
+      "type": "server_log",
+      "content": "Neeraj Sen received an alert at 11:43 PM for unusual outbound data transfer. His DevOps account acknowledged the alert at 11:46 PM but did not trigger the export.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Workstation Remote Access Note",
+      "sectionLabel": "Forensic 2",
+      "type": "forensic_report",
+      "content": "Priyanka's workstation received a remote unlock command at 11:36 PM. The command originated from an internal admin utility previously maintained by Kabir Malhotra.",
+      "isCritical": true,
+      "clueKey": "kabir_tool_remote_unlocked_workstation"
+    },
+    {
+      "title": "Internal Admin Utility Documentation",
+      "sectionLabel": "Docs 1",
+      "type": "policy_document",
+      "content": "The internal admin utility can remotely unlock a workstation for maintenance if paired with a service token. Kabir Malhotra was the original maintainer of this utility.",
+      "isCritical": true,
+      "clueKey": "kabir_maintained_remote_unlock_tool"
+    },
+    {
+      "title": "Incident Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "9:05 PM: Priyanka exited office. 10:50 PM: Kabir connected to VPN. 10:58 PM: Legacy token tested from Kabir's machine. 11:06 PM: Legacy token tested again. 11:36 PM: Priyanka's workstation remotely unlocked. 11:42 PM: export_worker_17 exported client dataset using legacy token. 11:43 PM: outbound data alert triggered. 11:55 PM: Kabir disconnected from VPN.",
+      "isCritical": true,
+      "clueKey": "timeline_links_kabir"
+    }
+  ],
+  "criticalClues": [
+    "priyanka_not_in_office",
+    "export_used_legacy_service_token",
+    "kabir_created_legacy_token",
+    "kabir_tested_token_before_export",
+    "audit_label_was_injected",
+    "kabir_vpn_during_incident",
+    "export_bypassed_approval",
+    "kabir_tool_remote_unlocked_workstation",
+    "kabir_maintained_remote_unlock_tool",
+    "timeline_links_kabir"
+  ]
+}

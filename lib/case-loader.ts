@@ -16,7 +16,7 @@ export type CaseEvidenceType =
 export type CaseFile = {
   slug: string;
   title: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: "easy" | "easy-medium" | "medium" | "medium-hard" | "hard" | "expert";
   estimatedTime: string;
   briefing: string;
   correctCulprit: string;

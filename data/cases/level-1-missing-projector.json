@@ -1,0 +1,95 @@
+{
+  "slug": "level-1-missing-projector",
+  "title": "Level 1: The Missing Projector",
+  "difficulty": "easy",
+  "estimatedTime": "15 minutes",
+  "briefing": "A classroom projector went missing from Seminar Hall B after a training session. Four people had access to the room during the evening.",
+  "correctCulprit": "Vikram Nair",
+  "solutionExplanation": "Vikram had the projector cart key, entered Seminar Hall B after the session, and CCTV showed him leaving with a covered trolley.",
+  "suspects": [
+    {
+      "name": "Ananya Rao",
+      "role": "Student Coordinator",
+      "description": "Helped arrange seating and left after attendance was completed."
+    },
+    {
+      "name": "Vikram Nair",
+      "role": "Lab Assistant",
+      "description": "Had access to equipment keys and was responsible for locking AV equipment."
+    },
+    {
+      "name": "Mehul Shah",
+      "role": "Guest Speaker",
+      "description": "Used the projector during the session and left immediately after his talk."
+    },
+    {
+      "name": "Priya Menon",
+      "role": "Reception Staff",
+      "description": "Handled visitor registration near the main entrance."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Witness Statement - Ananya Rao",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Ananya Rao says she left Seminar Hall B at 5:20 PM after collecting attendance sheets. She handed the room checklist to Vikram Nair before leaving.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Witness Statement - Vikram Nair",
+      "sectionLabel": "Statement 2",
+      "type": "witness_statement",
+      "content": "Vikram Nair says he only checked whether the lights were off at 5:35 PM. He claims he did not touch the projector cart.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "AV Equipment Key Register",
+      "sectionLabel": "Register 1",
+      "type": "object_evidence",
+      "content": "The projector cart key was signed out by Vikram Nair at 5:28 PM and returned at 6:10 PM. No other person signed out the projector cart key that evening.",
+      "isCritical": true,
+      "clueKey": "vikram_had_projector_key"
+    },
+    {
+      "title": "CCTV Hallway Note",
+      "sectionLabel": "CCTV 1",
+      "type": "cctv_note",
+      "content": "CCTV near Seminar Hall B shows Vikram Nair leaving the hallway at 5:48 PM while pushing a covered trolley. The trolley size matches the AV projector cart.",
+      "isCritical": true,
+      "clueKey": "vikram_seen_with_trolley"
+    },
+    {
+      "title": "Room Access Log",
+      "sectionLabel": "Access 1",
+      "type": "access_log",
+      "content": "Seminar Hall B door was opened at 5:31 PM using Vikram Nair's staff access card. No access was recorded for Mehul Shah or Priya Menon after 5:15 PM.",
+      "isCritical": true,
+      "clueKey": "vikram_entered_room_after_session"
+    },
+    {
+      "title": "Reception Exit Log",
+      "sectionLabel": "Log 1",
+      "type": "access_log",
+      "content": "Mehul Shah exited through the main gate at 5:18 PM. Priya Menon remained at the reception desk from 5:00 PM to 6:00 PM.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Incident Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "5:15 PM: Session ended. 5:18 PM: Guest speaker exited. 5:20 PM: Ananya left hall. 5:28 PM: Vikram signed out projector cart key. 5:31 PM: Vikram accessed Seminar Hall B. 5:48 PM: Vikram left with covered trolley. 6:15 PM: Projector reported missing.",
+      "isCritical": true,
+      "clueKey": "timeline_matches_vikram"
+    }
+  ],
+  "criticalClues": [
+    "vikram_had_projector_key",
+    "vikram_entered_room_after_session",
+    "vikram_seen_with_trolley",
+    "timeline_matches_vikram"
+  ]
+}

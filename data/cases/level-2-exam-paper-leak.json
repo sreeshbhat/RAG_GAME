@@ -1,0 +1,104 @@
+{
+  "slug": "level-2-exam-paper-leak",
+  "title": "Level 2: The Exam Paper Leak",
+  "difficulty": "easy-medium",
+  "estimatedTime": "20 minutes",
+  "briefing": "A confidential internal exam paper was leaked one night before the assessment. The file was stored in a restricted faculty folder.",
+  "correctCulprit": "Nisha Kulkarni",
+  "solutionExplanation": "Nisha used a temporary faculty login, accessed the exam folder, downloaded the paper, and later deleted browser history on the shared computer.",
+  "suspects": [
+    {
+      "name": "Prof. Arvind Rao",
+      "role": "Exam Coordinator",
+      "description": "Prepared the exam paper and uploaded it to the restricted faculty folder."
+    },
+    {
+      "name": "Nisha Kulkarni",
+      "role": "Teaching Assistant",
+      "description": "Helped with classroom coordination and had temporary access to faculty systems."
+    },
+    {
+      "name": "Rahul Jain",
+      "role": "Student Representative",
+      "description": "Was seen near the staff room but did not have official system access."
+    },
+    {
+      "name": "Sneha Pillai",
+      "role": "IT Support Intern",
+      "description": "Was asked to update printer drivers in the faculty lab."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Folder Access Log",
+      "sectionLabel": "Log 1",
+      "type": "access_log",
+      "content": "The restricted exam folder was accessed at 7:42 PM using temporary login faculty_temp_03. The exam file final_internal_exam.pdf was downloaded at 7:44 PM.",
+      "isCritical": true,
+      "clueKey": "temporary_login_downloaded_exam"
+    },
+    {
+      "title": "Temporary Login Assignment Sheet",
+      "sectionLabel": "Sheet 1",
+      "type": "object_evidence",
+      "content": "Temporary login faculty_temp_03 was assigned to Nisha Kulkarni for faculty lab work between 6:00 PM and 8:00 PM.",
+      "isCritical": true,
+      "clueKey": "nisha_assigned_temp_login"
+    },
+    {
+      "title": "Witness Statement - Prof. Arvind Rao",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Prof. Arvind Rao says he uploaded the final paper at 5:30 PM and left campus at 6:10 PM. His permanent faculty account was not used after 6:05 PM.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Witness Statement - Nisha Kulkarni",
+      "sectionLabel": "Statement 2",
+      "type": "witness_statement",
+      "content": "Nisha says she only used the faculty computer to format attendance sheets. She claims she did not open any exam-related folder.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Browser History Recovery Note",
+      "sectionLabel": "Forensic 1",
+      "type": "forensic_report",
+      "content": "Recovered browser artifacts show that the exam folder page was opened at 7:43 PM. Browser history was manually cleared at 7:51 PM from the same machine.",
+      "isCritical": true,
+      "clueKey": "history_cleared_after_download"
+    },
+    {
+      "title": "Printer Driver Maintenance Log",
+      "sectionLabel": "IT Log 1",
+      "type": "server_log",
+      "content": "Sneha Pillai updated printer drivers between 6:30 PM and 6:55 PM. Her IT account did not access the exam folder.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Staff Room CCTV Note",
+      "sectionLabel": "CCTV 1",
+      "type": "cctv_note",
+      "content": "CCTV shows Nisha entering the faculty lab at 7:35 PM and leaving at 7:55 PM. Rahul Jain was seen near the staff room corridor at 7:20 PM but did not enter the faculty lab.",
+      "isCritical": true,
+      "clueKey": "nisha_present_during_access"
+    },
+    {
+      "title": "Incident Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "5:30 PM: Prof. Arvind uploaded paper. 6:10 PM: Prof. Arvind exited campus. 7:35 PM: Nisha entered faculty lab. 7:42 PM: faculty_temp_03 accessed exam folder. 7:44 PM: exam file downloaded. 7:51 PM: browser history cleared. 7:55 PM: Nisha left faculty lab.",
+      "isCritical": true,
+      "clueKey": "timeline_matches_nisha"
+    }
+  ],
+  "criticalClues": [
+    "temporary_login_downloaded_exam",
+    "nisha_assigned_temp_login",
+    "history_cleared_after_download",
+    "nisha_present_during_access",
+    "timeline_matches_nisha"
+  ]
+}

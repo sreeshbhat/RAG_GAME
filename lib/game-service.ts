@@ -29,7 +29,18 @@ import {
 import type { RegisteredStudent } from "@/lib/student-registry";
 
 const MAX_QUESTIONS = 20;
-const ACCUSATION_UNLOCK_CLUES = 3;
+const unlockRules: Record<string, number> = {
+  easy: 3,
+  "easy-medium": 3,
+  medium: 4,
+  "medium-hard": 4,
+  hard: 5,
+  expert: 6,
+};
+
+function getUnlockClueRequirement(difficulty: string) {
+  return unlockRules[difficulty] ?? 3;
+}
 
 export async function upsertStudentRecord(student: RegisteredStudent) {
   const db = getDb();
@@ -240,6 +251,7 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     criticalClues: caseFile.criticalClues,
     difficulty: caseFile.difficulty,
     estimatedTime: caseFile.estimatedTime,
+    unlockRequirement: getUnlockClueRequirement(caseFile.difficulty),
   };
 
   if (!studentDbId || !isDatabaseConfigured()) {
@@ -299,7 +311,7 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     cluesFound: clueRows.map((row) => row.clueKey),
     hallucinationReports: reports,
     chatLog: messages,
-    accusationLocked: clueRows.length < ACCUSATION_UNLOCK_CLUES,
+    accusationLocked: clueRows.length < getUnlockClueRequirement(caseFile.difficulty),
   };
 }
 
@@ -596,8 +608,9 @@ export async function submitAccusation({
     .select()
     .from(studentClues)
     .where(and(eq(studentClues.studentId, studentDbId), eq(studentClues.caseId, caseRecord.id)));
-  if (clueRows.length < ACCUSATION_UNLOCK_CLUES) {
-    throw new Error("At least 3 critical clues are required before a final accusation.");
+  const requiredClues = getUnlockClueRequirement(caseRecord.difficulty);
+  if (clueRows.length < requiredClues) {
+    throw new Error(`At least ${requiredClues} critical clues are required before a final accusation.`);
   }
 
   const caseFile = await getCaseFileBySlug(caseSlug);

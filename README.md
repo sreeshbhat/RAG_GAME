@@ -41,12 +41,13 @@ Each student must include:
 
 ```json
 {
-  "id": "stu_001",
-  "name": "Aarav Sharma",
-  "email": "aarav@example.com",
-  "rollNumber": "23EG001"
+  "roll_number": "23EG106A05",
+  "name": "Bilakanti Sruthi",
+  "class_section": ""
 }
 ```
+
+Login uses `name + roll_number`. `access_code` can be present in the file, but it is ignored by the app.
 
 ## Add crime scenes to `data/cases`
 
