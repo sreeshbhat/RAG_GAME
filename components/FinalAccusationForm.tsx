@@ -6,7 +6,6 @@ import { CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 export function FinalAccusationForm({
@@ -14,6 +13,8 @@ export function FinalAccusationForm({
   suspects,
   evidenceTitles,
   locked,
+  lockRequirement,
+  accusationMinEvidenceCount,
   hasSubmittedAccusation = false,
   accusationFeedback = null,
 }: {
@@ -21,6 +22,8 @@ export function FinalAccusationForm({
   suspects: string[];
   evidenceTitles: string[];
   locked: boolean;
+  lockRequirement: number;
+  accusationMinEvidenceCount: number;
   hasSubmittedAccusation?: boolean;
   accusationFeedback?: string | null;
 }) {
@@ -34,6 +37,10 @@ export function FinalAccusationForm({
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (submitting || locked || submitted) return;
+    if (selectedEvidence.length < accusationMinEvidenceCount) {
+      setResult(`Select at least ${accusationMinEvidenceCount} evidence items before submitting.`);
+      return;
+    }
     setSubmitting(true);
     try {
       const response = await fetch("/api/accuse", {
@@ -94,7 +101,7 @@ export function FinalAccusationForm({
     <Card className="max-w-3xl">
       <CardTitle>Final Accusation</CardTitle>
       <CardDescription className="mt-2">
-        Locked until at least 3 critical clues are discovered.
+        Locked until at least {lockRequirement} critical clues are discovered.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
@@ -114,19 +121,36 @@ export function FinalAccusationForm({
         </div>
         <div className="space-y-2">
           <label className="text-sm text-muted">Supporting evidence titles</label>
-          <Input
-            disabled={locked || submitting}
-            placeholder="Comma separated evidence titles"
-            onChange={(event) =>
-              setSelectedEvidence(
-                event.target.value
-                  .split(",")
-                  .map((item) => item.trim())
-                  .filter(Boolean),
-              )
-            }
-          />
-          <p className="text-xs text-muted">{evidenceTitles.join(" | ")}</p>
+          <div className="grid gap-2 rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+            {evidenceTitles.map((title) => {
+              const checked = selectedEvidence.includes(title);
+              return (
+                <label
+                  className="flex items-start gap-3 rounded-xl border border-white/5 px-3 py-2 text-sm text-slate-200"
+                  key={title}
+                >
+                  <input
+                    checked={checked}
+                    className="mt-1"
+                    disabled={locked || submitting}
+                    onChange={(event) => {
+                      setSelectedEvidence((current) => {
+                        if (event.target.checked) {
+                          return Array.from(new Set([...current, title]));
+                        }
+                        return current.filter((item) => item !== title);
+                      });
+                    }}
+                    type="checkbox"
+                  />
+                  <span>{title}</span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted">
+            Select at least {accusationMinEvidenceCount} evidence items and reference them in your explanation.
+          </p>
         </div>
         <div className="space-y-2">
           <label className="text-sm text-muted">Evidence-based explanation</label>
@@ -134,12 +158,13 @@ export function FinalAccusationForm({
             disabled={locked || submitting}
             value={explanation}
             onChange={(event) => setExplanation(event.target.value)}
+            placeholder="Explain why the suspect is responsible, and explicitly mention the evidence you selected."
           />
         </div>
         <Button disabled={locked || submitting} type="submit">
           {submitting ? "Submitting Accusation..." : "Submit Final Accusation"}
         </Button>
-        {locked ? <p className="text-sm text-danger">Find at least 3 critical clues first.</p> : null}
+        {locked ? <p className="text-sm text-danger">Find at least {lockRequirement} critical clues first.</p> : null}
         {result ? <p className="text-sm text-amber-300">{result}</p> : null}
       </form>
     </Card>

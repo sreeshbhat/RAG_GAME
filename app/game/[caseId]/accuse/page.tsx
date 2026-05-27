@@ -35,6 +35,8 @@ export default async function AccusePage({
           suspects={caseData.suspects.map((suspect) => suspect.name)}
           evidenceTitles={caseData.evidence.map((entry) => entry.title)}
           locked={caseData.accusationLocked}
+          lockRequirement={caseData.unlockRequirement}
+          accusationMinEvidenceCount={caseData.accusationMinEvidenceCount}
           hasSubmittedAccusation={caseData.hasSubmittedAccusation}
           accusationFeedback={caseData.accusationFeedback}
         />

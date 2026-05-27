@@ -34,7 +34,7 @@ import {
 } from "@/lib/schema";
 import type { RegisteredStudent } from "@/lib/student-registry";
 
-const MAX_QUESTIONS = 20;
+const DEFAULT_MAX_QUESTIONS = 20;
 const unlockRules: Record<string, number> = {
   easy: 3,
   "easy-medium": 3,
@@ -46,6 +46,33 @@ const unlockRules: Record<string, number> = {
 
 function getUnlockClueRequirement(difficulty: string) {
   return unlockRules[difficulty] ?? 3;
+}
+
+function getCaseQuestionLimit(caseFile: { maxQuestionsAllowed?: number }) {
+  return caseFile.maxQuestionsAllowed ?? DEFAULT_MAX_QUESTIONS;
+}
+
+function getCaseClueRequirement(caseFile: {
+  minimumCriticalCluesRequired?: number;
+  completionCluesThreshold?: number;
+  difficulty: string;
+}) {
+  return (
+    caseFile.minimumCriticalCluesRequired ??
+    caseFile.completionCluesThreshold ??
+    getUnlockClueRequirement(caseFile.difficulty)
+  );
+}
+
+function explanationReferencesEvidence(explanation: string, selectedEvidence: string[]) {
+  const normalizedExplanation = explanation.toLowerCase();
+  return selectedEvidence.some((title) => {
+    const titleWords = title
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((word) => word.length >= 4);
+    return titleWords.some((word) => normalizedExplanation.includes(word));
+  });
 }
 
 function isUniqueConstraintError(error: unknown) {
@@ -116,7 +143,7 @@ export async function seedCasesFromFiles() {
           correctCulprit: caseFile.correctCulprit,
           solutionExplanation: caseFile.solutionExplanation,
           completionScoreThreshold: caseFile.completionScoreThreshold ?? 40,
-          completionCluesThreshold: caseFile.completionCluesThreshold ?? getUnlockClueRequirement(caseFile.difficulty),
+          completionCluesThreshold: caseFile.completionCluesThreshold ?? getCaseClueRequirement(caseFile),
         })
         .returning();
     } else {
@@ -124,7 +151,7 @@ export async function seedCasesFromFiles() {
         .update(cases)
         .set({
           completionScoreThreshold: caseFile.completionScoreThreshold ?? 40,
-          completionCluesThreshold: caseFile.completionCluesThreshold ?? getUnlockClueRequirement(caseFile.difficulty),
+          completionCluesThreshold: caseFile.completionCluesThreshold ?? getCaseClueRequirement(caseFile),
         })
         .where(eq(cases.id, caseRecord.id))
         .returning();
@@ -346,14 +373,17 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     criticalClues: caseFile.criticalClues,
     difficulty: caseFile.difficulty,
     estimatedTime: caseFile.estimatedTime,
-    unlockRequirement: getUnlockClueRequirement(caseFile.difficulty),
+    unlockRequirement: getCaseClueRequirement(caseFile),
+    maxQuestionsAllowed: getCaseQuestionLimit(caseFile),
+    accusationRequiresEvidence: caseFile.accusationRequiresEvidence ?? true,
+    accusationMinEvidenceCount: caseFile.accusationMinEvidenceCount ?? 2,
   };
 
   if (!studentDbId || !isDatabaseConfigured()) {
     return {
       ...base,
       score: 0,
-      questionsRemaining: MAX_QUESTIONS,
+      questionsRemaining: base.maxQuestionsAllowed,
       cluesFound: [],
       hallucinationReports: [],
       chatLog: [],
@@ -369,7 +399,7 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     return {
       ...base,
       score: 0,
-      questionsRemaining: MAX_QUESTIONS,
+      questionsRemaining: base.maxQuestionsAllowed,
       cluesFound: [],
       hallucinationReports: [],
       chatLog: [],
@@ -412,12 +442,12 @@ export async function getCaseGameData(caseSlug: string, studentDbId?: string) {
     ...base,
     dbCaseId: caseRecord.id,
     score: progress?.score ?? 0,
-    questionsRemaining: MAX_QUESTIONS - (progress?.questionsUsed ?? 0),
+    questionsRemaining: base.maxQuestionsAllowed - (progress?.questionsUsed ?? 0),
     cluesFound: clueRows.map((row) => row.clueKey),
     hallucinationReports: reports,
     chatLog: messages,
     hintsUsed: progress?.hintsUsed ?? 0,
-    accusationLocked: !!existingAccusation || clueRows.length < getUnlockClueRequirement(caseFile.difficulty),
+    accusationLocked: !!existingAccusation || clueRows.length < getCaseClueRequirement(caseFile),
     hasSubmittedAccusation: !!existingAccusation,
     accusationFeedback: existingAccusation?.feedback ?? null,
   };
@@ -477,8 +507,13 @@ export async function processChatQuestion({
 }) {
   const db = getDb();
   const { caseRecord, progress } = await ensureProgress(studentDbId, caseSlug);
+  const caseFile = await getCaseFileBySlug(caseSlug);
+  if (!caseFile) {
+    throw new Error("Case file not found.");
+  }
+  const questionLimit = getCaseQuestionLimit(caseFile);
 
-  if (progress.questionsUsed >= MAX_QUESTIONS) {
+  if (progress.questionsUsed >= questionLimit) {
     throw new Error("Question limit reached for this case.");
   }
 
@@ -500,7 +535,7 @@ export async function processChatQuestion({
       retrievedChunks: [],
       scoreDelta,
       cluesDiscovered: [],
-      questionsRemaining: MAX_QUESTIONS - (progress.questionsUsed + 1),
+      questionsRemaining: questionLimit - (progress.questionsUsed + 1),
     };
   }
 
@@ -545,7 +580,7 @@ export async function processChatQuestion({
   const answer = await generateGroundedAnswer({
     question,
     criticalCluesFound: clueKeys,
-    questionsRemaining: MAX_QUESTIONS - (progress.questionsUsed + 1),
+    questionsRemaining: questionLimit - (progress.questionsUsed + 1),
     retrieved,
     provider: llmProvider,
     apiKey: llmApiKey,
@@ -623,7 +658,6 @@ export async function processChatQuestion({
     })
     .where(eq(studentCaseProgress.id, progress.id));
 
-  const caseFile = await getCaseFileBySlug(caseSlug);
   const duplicateCount = recentQuestionRows.filter((r) => r.scoreDelta < 0).length;
   const timeSpent = Math.floor(
     (Date.now() - (progress.startedAt ? new Date(progress.startedAt).getTime() : Date.now())) / 1000,
@@ -645,7 +679,7 @@ export async function processChatQuestion({
     retrievedChunks: retrieved,
     scoreDelta,
     cluesDiscovered: discoveredClues,
-    questionsRemaining: MAX_QUESTIONS - (progress.questionsUsed + 1),
+    questionsRemaining: questionLimit - (progress.questionsUsed + 1),
     messageId: assistantMessage[0]?.id,
     lowCitationConfidence: !citationCheck.isValid,
     warning: citationCheck.warning,
@@ -741,18 +775,35 @@ export async function submitAccusation({
   if (clueRows.length < requiredClues) {
     throw new Error(`At least ${requiredClues} critical clues are required before a final accusation.`);
   }
+  if (detectPromptInjection(explanation)) {
+    throw new Error("Prompt injection-like language is not allowed in the final accusation.");
+  }
 
   const caseFile = await getCaseFileBySlug(caseSlug);
   const evidenceMatches = (caseFile?.evidence ?? []).filter((entry) =>
     selectedEvidence.includes(entry.title),
   );
+  const minEvidenceCount = caseFile?.accusationMinEvidenceCount ?? 2;
+  const requiresEvidence = caseFile?.accusationRequiresEvidence ?? true;
+  if (requiresEvidence && selectedEvidence.length < minEvidenceCount) {
+    throw new Error(`Select at least ${minEvidenceCount} evidence items for the final accusation.`);
+  }
+  if (selectedEvidence.length !== new Set(selectedEvidence).size) {
+    throw new Error("Duplicate evidence selections are not allowed.");
+  }
+  if (selectedEvidence.some((title) => !(caseFile?.evidence ?? []).some((entry) => entry.title === title))) {
+    throw new Error("One or more selected evidence titles are invalid for this case.");
+  }
   const correctEvidenceCount = evidenceMatches.filter(
     (entry) => entry.isCritical && entry.clueKey,
   ).length;
   const isCorrect = accusedSuspect === caseRecord.correctCulprit;
   const strongExplanation =
     explanation.length > 120 &&
-    selectedEvidence.some((title) => explanation.toLowerCase().includes(title.toLowerCase().split(" ")[0]));
+    explanationReferencesEvidence(explanation, selectedEvidence);
+  if (!explanationReferencesEvidence(explanation, selectedEvidence)) {
+    throw new Error("Your explanation must explicitly reference the selected evidence.");
+  }
 
   const scoreEvents: ScoreEvent[] = [];
   if (isCorrect) scoreEvents.push("correct_culprit" as const);

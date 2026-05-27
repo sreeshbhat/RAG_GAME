@@ -56,6 +56,10 @@ export type CaseFile = {
     level2: string;
     level3: string;
   };
+  minimumCriticalCluesRequired?: number;
+  maxQuestionsAllowed?: number;
+  accusationRequiresEvidence?: boolean;
+  accusationMinEvidenceCount?: number;
   completionScoreThreshold?: number;
   completionCluesThreshold?: number;
 };

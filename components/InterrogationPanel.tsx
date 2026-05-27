@@ -134,11 +134,15 @@ export function InterrogationPanel({
       });
     } catch (err) {
       console.error(err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to obtain suspect response. Make sure the database and APIs are online.";
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "ERROR: Failed to obtain suspect response. Make sure the database and APIs are online.",
+          content: `ERROR: ${message}`,
         },
       ]);
     } finally {

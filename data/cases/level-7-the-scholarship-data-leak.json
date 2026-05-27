@@ -1,0 +1,357 @@
+{
+  "slug": "level-7-the-scholarship-data-leak",
+  "title": "Level 7: The Scholarship Data Leak",
+  "difficulty": "expert",
+  "estimatedTime": "45-60 minutes",
+  "briefing": "At Saraswati Institute of Technology, the confidential file scholarship_final_review.xlsx was leaked the night before the official scholarship announcement. Students and parents began receiving outside messages before the list was published. Investigators must determine who used the unlocked committee laptop, how the file was copied, and how it reached a coaching center before the public release.",
+  "correctCulprit": "Rakesh Sharma",
+  "solutionExplanation": "Rakesh Sharma exploited the unlocked committee laptop, opened the restricted scholarship folder without needing direct permission, downloaded the confidential spreadsheet, copied it to a USB device, cleared the downloads history, and later prepared the same file in a Gmail draft before moving near the coaching center that used the leaked data.",
+  "minimumCriticalCluesRequired": 6,
+  "maxQuestionsAllowed": 25,
+  "accusationRequiresEvidence": true,
+  "accusationMinEvidenceCount": 4,
+  "completionScoreThreshold": 110,
+  "completionCluesThreshold": 6,
+  "suspects": [
+    {
+      "name": "Dr. Meera Nair",
+      "role": "Scholarship Committee Chair",
+      "description": "Had full access to the scholarship folder and admits she left the committee laptop unlocked before going to a meeting."
+    },
+    {
+      "name": "Rakesh Sharma",
+      "role": "Administrative Assistant",
+      "description": "Handled scanned income forms and was alone in the records room during the file download window."
+    },
+    {
+      "name": "Anjali Verma",
+      "role": "Accounts Officer",
+      "description": "Verified fee concession and income records and had a legitimate reason to work with scholarship data."
+    },
+    {
+      "name": "Kiran Thomas",
+      "role": "IT Support Executive",
+      "description": "Fixed the committee laptop Wi-Fi earlier that evening and understands institution systems well."
+    },
+    {
+      "name": "Suhas Patil",
+      "role": "Student Volunteer",
+      "description": "Helped carry physical scholarship bundles but had no official digital access."
+    }
+  ],
+  "evidence": [
+    {
+      "title": "Incident Report",
+      "sectionLabel": "Report 1",
+      "type": "crime_scene_note",
+      "content": "At 8:30 PM, the principal received a complaint from a parent who said a coaching center already knew a student's scholarship result. By 9:05 PM, screenshots of the confidential file scholarship_final_review.xlsx were circulating in a student WhatsApp group. The file had not yet been officially published.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Scholarship Folder Permission Record",
+      "sectionLabel": "Access 1",
+      "type": "policy_document",
+      "content": "The restricted scholarship folder was accessible only to Dr. Meera Nair, Anjali Verma, and the committee laptop account scholarship.committee@sit.edu. Rakesh Sharma, Kiran Thomas, and Suhas Patil did not have direct permission to the folder.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Committee Laptop Access Log",
+      "sectionLabel": "Log 1",
+      "type": "server_log",
+      "content": "The committee laptop was active at 6:41 PM. The restricted Google Drive folder containing scholarship_final_review.xlsx was opened at 6:45 PM. The file scholarship_final_review.xlsx was downloaded locally at 6:47 PM. No password re-entry was required because the session was already unlocked.",
+      "isCritical": true,
+      "clueKey": "committee_laptop_downloaded_file"
+    },
+    {
+      "title": "USB Device Log",
+      "sectionLabel": "Forensic 1",
+      "type": "forensic_report",
+      "content": "A USB storage device named KINGSTON_32GB was inserted into the committee laptop at 6:49 PM and removed at 6:53 PM. During that interval, scholarship_final_review.xlsx was copied from the local Downloads folder to the USB device.",
+      "isCritical": true,
+      "clueKey": "usb_copied_scholarship_file"
+    },
+    {
+      "title": "CCTV Records Room Note",
+      "sectionLabel": "CCTV 1",
+      "type": "cctv_note",
+      "content": "CCTV outside the records room shows Rakesh Sharma entering at 6:39 PM carrying scanned forms. He exits at 6:56 PM holding the same forms and a small black pouch. No other person entered the room between 6:39 PM and 6:56 PM.",
+      "isCritical": true,
+      "clueKey": "rakesh_alone_during_download_window"
+    },
+    {
+      "title": "Statement from Dr. Meera Nair",
+      "sectionLabel": "Statement 1",
+      "type": "witness_statement",
+      "content": "Dr. Meera says she reviewed the scholarship file at 5:30 PM and left the committee laptop open because Anjali Verma still had one pending income category to verify. She says she left the records room at 6:25 PM for a meeting with the principal.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Principal Meeting Register",
+      "sectionLabel": "Register 1",
+      "type": "access_log",
+      "content": "Dr. Meera Nair attended a meeting with the principal from 6:30 PM to 7:10 PM. Her signature appears in the meeting register, and corridor CCTV near the principal's office confirms her presence for the entire interval.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Statement from Rakesh Sharma",
+      "sectionLabel": "Statement 2",
+      "type": "witness_statement",
+      "content": "Rakesh Sharma says he entered the records room at around 6:40 PM only to place scanned income forms on the table. He says he did not touch the committee laptop, stayed only two minutes, and never carried any USB device that evening.",
+      "isCritical": true,
+      "clueKey": "rakesh_statement_conflicts_with_cctv"
+    },
+    {
+      "title": "Statement from Anjali Verma",
+      "sectionLabel": "Statement 3",
+      "type": "witness_statement",
+      "content": "Anjali says she returned to the accounts office at 6:15 PM and worked on the fee concession summary until shortly before 7:00 PM. She says she did not re-enter the records room after leaving it.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Accounts Office Desktop Log",
+      "sectionLabel": "Log 2",
+      "type": "server_log",
+      "content": "Anjali Verma's desktop was active from 6:22 PM to 6:58 PM. During that time, fee_concession_summary.xlsx was edited multiple times. No access to scholarship_final_review.xlsx was recorded from her workstation after 6:15 PM.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Statement from Kiran Thomas",
+      "sectionLabel": "Statement 4",
+      "type": "witness_statement",
+      "content": "Kiran says he visited the records room at 5:55 PM to fix Wi-Fi issues on the committee laptop and left by 6:08 PM. He denies downloading or copying any scholarship file.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "IT Support Ticket",
+      "sectionLabel": "IT 1",
+      "type": "server_log",
+      "content": "Kiran Thomas opened a Wi-Fi support ticket at 5:50 PM and marked it resolved at 6:07 PM. The committee laptop reconnected to Wi-Fi at 6:03 PM. No scholarship file download was recorded during the support window.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Statement from Suhas Patil",
+      "sectionLabel": "Statement 5",
+      "type": "witness_statement",
+      "content": "Suhas says he helped carry physical scholarship bundles until 5:45 PM, left campus around 6:05 PM, and never used the committee laptop. He did not have staff login access.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Campus Exit Register",
+      "sectionLabel": "Gate 1",
+      "type": "access_log",
+      "content": "Suhas Patil exited the campus through the main gate at 6:06 PM. No re-entry was recorded for him that evening.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Personal Email Draft Recovery",
+      "sectionLabel": "Forensic 2",
+      "type": "forensic_report",
+      "content": "A recovered phone notification linked to Rakesh Sharma shows a Gmail draft created at 7:18 PM with the subject final list. The visible attachment name in the notification was scholarship_final_review.xlsx.",
+      "isCritical": true,
+      "clueKey": "rakesh_email_draft_had_file"
+    },
+    {
+      "title": "External Coaching Center Message",
+      "sectionLabel": "Message 1",
+      "type": "crime_scene_note",
+      "content": "At 8:12 PM, a student received a WhatsApp message from BrightPath Coaching Center saying, Your name is in the confirmed scholarship list. Contact us for admission support. The message was sent before the official scholarship announcement.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Phone Location Summary",
+      "sectionLabel": "Location 1",
+      "type": "forensic_report",
+      "content": "Rakesh Sharma's phone remained connected to campus Wi-Fi until 7:05 PM. At 7:22 PM, it connected to mobile data near the bus stand opposite BrightPath Coaching Center.",
+      "isCritical": true,
+      "clueKey": "rakesh_near_coaching_center"
+    },
+    {
+      "title": "Scholarship Data Handling Policy",
+      "sectionLabel": "Policy 1",
+      "type": "policy_document",
+      "content": "Confidential scholarship files must not be downloaded to local storage unless explicitly approved by the committee chair. USB storage devices are prohibited on committee laptops during scholarship review week.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Committee Laptop Browser History",
+      "sectionLabel": "Browser 1",
+      "type": "forensic_report",
+      "content": "At 6:45 PM, the browser opened the restricted scholarship folder. At 6:47 PM, scholarship_final_review.xlsx was downloaded. At 6:54 PM, the browser downloads page was opened. At 6:55 PM, the downloads history was cleared.",
+      "isCritical": true,
+      "clueKey": "downloads_history_cleared"
+    },
+    {
+      "title": "Records Room Cleaning Note",
+      "sectionLabel": "Note 1",
+      "type": "crime_scene_note",
+      "content": "Housekeeping staff cleaned the records room at 7:30 PM and found no abandoned USB device, no printed scholarship list, and no damaged papers. The committee laptop was closed but still powered on.",
+      "isCritical": false,
+      "clueKey": null
+    },
+    {
+      "title": "Detailed Incident Timeline",
+      "sectionLabel": "Timeline 1",
+      "type": "timeline",
+      "content": "5:30 PM: Dr. Meera reviewed scholarship_final_review.xlsx. 5:55 PM: Kiran entered to fix Wi-Fi. 6:03 PM: Committee laptop reconnected. 6:15 PM: Anjali left the records room. 6:25 PM: Dr. Meera left for the principal's office. 6:39 PM: Rakesh entered the records room. 6:45 PM: Restricted folder opened. 6:47 PM: scholarship_final_review.xlsx downloaded. 6:49 PM: KINGSTON_32GB inserted. 6:53 PM: USB removed after file copy. 6:55 PM: Downloads history cleared. 6:56 PM: Rakesh left with a small black pouch. 7:18 PM: Gmail draft on Rakesh's phone showed the same file name. 7:22 PM: Rakesh's phone connected near BrightPath Coaching Center. 8:12 PM: Coaching center message reached a student. 9:05 PM: Screenshots spread in a WhatsApp group.",
+      "isCritical": true,
+      "clueKey": "timeline_links_rakesh"
+    }
+  ],
+  "criticalClues": [
+    "committee_laptop_downloaded_file",
+    "usb_copied_scholarship_file",
+    "rakesh_alone_during_download_window",
+    "rakesh_statement_conflicts_with_cctv",
+    "downloads_history_cleared",
+    "rakesh_email_draft_had_file",
+    "rakesh_near_coaching_center",
+    "timeline_links_rakesh"
+  ],
+  "suspectProfiles": [
+    {
+      "suspectName": "Dr. Meera Nair",
+      "personality": "Methodical, authoritative, and uneasy about having made an avoidable security mistake. She answers carefully and dislikes being blamed for negligence.",
+      "truthfulness": 82,
+      "background": "Scholarship Committee Chair who performed the final review, had full folder access, and left the committee laptop unlocked before going to the principal's office.",
+      "hiddenFacts": [
+        "I knew leaving the committee laptop unlocked was against policy, but I expected only Anjali to use it.",
+        "I did not report the unlocked laptop immediately because I was embarrassed by the lapse."
+      ],
+      "emotionalTriggers": ["unlocked", "policy", "negligence", "meeting", "chair"]
+    },
+    {
+      "suspectName": "Rakesh Sharma",
+      "personality": "Polite on the surface but evasive under pressure. He becomes defensive when confronted with timing, USB evidence, or the coaching center link.",
+      "truthfulness": 24,
+      "background": "Administrative Assistant responsible for scanned scholarship forms, present in the records room during the download window, and later linked to a Gmail draft containing the leaked file name.",
+      "hiddenFacts": [
+        "I used the unlocked committee laptop because I knew I could reach the file without direct folder permission.",
+        "I carried the USB device inside the small black pouch and copied the spreadsheet before leaving the room.",
+        "I prepared the Gmail draft so the file could be passed along after I left campus."
+      ],
+      "emotionalTriggers": ["usb", "pouch", "gmail", "coaching", "downloads", "history", "records room"]
+    },
+    {
+      "suspectName": "Anjali Verma",
+      "personality": "Measured, detail-oriented, and quietly frustrated that her legitimate access makes her look suspicious. She prefers documentary proof over speculation.",
+      "truthfulness": 88,
+      "background": "Accounts Officer who verified financial records and worked from her office desktop during the critical period instead of the records room.",
+      "hiddenFacts": [
+        "I was annoyed that Dr. Meera left the committee laptop open because that broke procedure.",
+        "I noticed Rakesh lingering outside the records room earlier than usual while carrying forms."
+      ],
+      "emotionalTriggers": ["desktop", "accounts", "verification", "procedure", "records room"]
+    },
+    {
+      "suspectName": "Kiran Thomas",
+      "personality": "Technically precise, slightly impatient, and quick to separate his support work from later misuse. He resists vague accusations.",
+      "truthfulness": 90,
+      "background": "IT Support Executive who fixed the committee laptop Wi-Fi before the leak window and closed the support ticket before the confidential file was downloaded.",
+      "hiddenFacts": [
+        "I warned staff more than once about leaving shared administrative laptops unlocked.",
+        "I noticed the committee laptop was still signed in when I finished the Wi-Fi repair."
+      ],
+      "emotionalTriggers": ["wifi", "ticket", "support", "unlock", "technical"]
+    },
+    {
+      "suspectName": "Suhas Patil",
+      "personality": "Earnest, nervous about being pulled into staff matters, and eager to establish that he had no digital access to the scholarship systems.",
+      "truthfulness": 94,
+      "background": "Student Volunteer who helped move physical scholarship bundles and left campus before the confidential file was downloaded.",
+      "hiddenFacts": [
+        "I heard some students gossiping that coaching centers somehow get early scholarship information every year.",
+        "I was worried my name would come up simply because the leak later spread in student groups."
+      ],
+      "emotionalTriggers": ["student group", "campus exit", "volunteer", "coaching center"]
+    }
+  ],
+  "timelineEvents": [
+    {
+      "timestamp": "5:30 PM",
+      "description": "Dr. Meera reviews the final scholarship spreadsheet.",
+      "evidenceTitle": "Statement from Dr. Meera Nair",
+      "critical": false,
+      "orderIndex": 0
+    },
+    {
+      "timestamp": "6:03 PM",
+      "description": "Committee laptop reconnects after Wi-Fi support.",
+      "evidenceTitle": "IT Support Ticket",
+      "critical": false,
+      "orderIndex": 1
+    },
+    {
+      "timestamp": "6:25 PM",
+      "description": "Dr. Meera leaves the records room for the principal's office.",
+      "evidenceTitle": "Principal Meeting Register",
+      "critical": false,
+      "orderIndex": 2
+    },
+    {
+      "timestamp": "6:39 PM",
+      "description": "Rakesh enters the records room carrying scanned forms.",
+      "evidenceTitle": "CCTV Records Room Note",
+      "critical": true,
+      "orderIndex": 3
+    },
+    {
+      "timestamp": "6:47 PM",
+      "description": "The confidential scholarship file is downloaded on the committee laptop.",
+      "evidenceTitle": "Committee Laptop Access Log",
+      "critical": true,
+      "orderIndex": 4
+    },
+    {
+      "timestamp": "6:49 PM",
+      "description": "A USB device is inserted and the file copy begins.",
+      "evidenceTitle": "USB Device Log",
+      "critical": true,
+      "orderIndex": 5
+    },
+    {
+      "timestamp": "6:55 PM",
+      "description": "The downloads history is cleared from the browser.",
+      "evidenceTitle": "Committee Laptop Browser History",
+      "critical": true,
+      "orderIndex": 6
+    },
+    {
+      "timestamp": "7:18 PM",
+      "description": "A Gmail draft on Rakesh's phone shows the leaked file name as an attachment.",
+      "evidenceTitle": "Personal Email Draft Recovery",
+      "critical": true,
+      "orderIndex": 7
+    },
+    {
+      "timestamp": "7:22 PM",
+      "description": "Rakesh's phone appears near the coaching center area.",
+      "evidenceTitle": "Phone Location Summary",
+      "critical": true,
+      "orderIndex": 8
+    },
+    {
+      "timestamp": "8:12 PM",
+      "description": "BrightPath Coaching Center contacts a student before the public announcement.",
+      "evidenceTitle": "External Coaching Center Message",
+      "critical": true,
+      "orderIndex": 9
+    }
+  ],
+  "hints": {
+    "level1": "Start with the committee laptop timeline and identify who could touch the file without direct folder permission.",
+    "level2": "Compare Rakesh's statement with CCTV timing, USB activity, and the cleared browser history.",
+    "level3": "Connect the laptop download, the USB copy, the Gmail draft, and the later coaching center contact into one leak chain."
+  }
+}
